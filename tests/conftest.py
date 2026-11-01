@@ -4,6 +4,9 @@ from pathlib import Path
 import pytest
 from helpers import CELLML_BYTES, FakeServer, make_model, write_checkout
 
+import odezoo.http
+from odezoo.http import Http
+
 LOCALHOST = ["127.0.0.1", "::1"]
 
 
@@ -16,6 +19,12 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
     for item in items:
         if item.get_closest_marker("network") is None:
             item.add_marker(pytest.mark.allow_hosts(LOCALHOST))
+
+
+@pytest.fixture(autouse=True)
+def fast_http(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The process-wide client, without request spacing: tests talk to one local server"""
+    monkeypatch.setattr(odezoo.http, "_client", Http(default_interval=0.0, host_intervals={}))
 
 
 @pytest.fixture

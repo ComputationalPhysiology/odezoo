@@ -30,7 +30,9 @@ class FakeServer:
         self.requests: list[tuple[str, dict[str, str]]] = []
         self._httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), self._handler())
         self.url = f"http://127.0.0.1:{self._httpd.server_address[1]}"
-        self._thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
+        self._thread = threading.Thread(
+            target=self._httpd.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True
+        )
 
     def add(
         self,
