@@ -1,0 +1,52 @@
+{
+  "name": "odezoo",
+  "image": "mcr.microsoft.com/devcontainers/python:3.15-trixie",
+  "workspaceFolder": "/workspaces/odezoo",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/odezoo,type=bind",
+
+  "runArgs": [
+    "--name", "odezoo"
+  ],
+
+  "features": {
+    // Zsh as the default shell inside the container
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true
+    },
+    // Node for the mystmd documentation (myst build) and its search widget
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    // gh, for opening pull requests on ComputationalPhysiology/odezoo
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // Editable install with the dev extras, and the pre-commit hooks, once the container is built
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postAttachCommand": "bash .devcontainer/setup-claude-plugins.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "tamasfe.even-better-toml",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true
+      }
+    }
+  },
+
+  // Local Zsh configs and SSH keys (for pushing to GitHub over SSH)
+  "mounts": [
+    "source=${localEnv:HOME}/.zshrc,target=/root/.zshrc,type=bind,readonly",
+    "source=${localEnv:HOME}/.oh-my-zsh,target=/root/.oh-my-zsh,type=bind,readonly",
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly"
+  ],
+
+  "remoteUser": "root"
+}
