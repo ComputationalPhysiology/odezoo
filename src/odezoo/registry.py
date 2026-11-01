@@ -23,13 +23,44 @@ ENV_VAR = "ODEZOO_REGISTRY"
 
 @dataclass(frozen=True)
 class Registry:
+    """A set of models, and where their files can be found
+
+    Attributes
+    ----------
+    models : Mapping[str, Model]
+        The models, by id
+    commit : str | None
+        The registry commit the mirror URLs are pinned to; None for a checkout
+    root : Path | None
+        The checkout the models were read from, whose files are read from disk; None for the
+        bundled registry
+    mirror_base : str
+        The mirror's URL without the commit, by default this repository on GitHub
+    """
+
     models: Mapping[str, Model]
     commit: str | None = None  # the registry commit the mirror URLs are pinned to
     root: Path | None = None  # set for a checkout, whose files are read from disk
     mirror_base: str = MIRROR_BASE
 
     def get(self, id: str) -> Model:
-        """The model `id`, also when typed with other capitals or surrounding spaces"""
+        """Return the model `id`, also when typed with other capitals or surrounding spaces
+
+        Parameters
+        ----------
+        id : str
+            The model's id
+
+        Returns
+        -------
+        Model
+            The model
+
+        Raises
+        ------
+        ModelNotFound
+            If no model has that id; it suggests up to three similar ones
+        """
         if id in self.models:
             return self.models[id]
         key = id.strip().lower()
@@ -39,7 +70,24 @@ class Registry:
 
 
 def read_model(folder: Path) -> Model:
-    """Parse `folder/model.toml` and check that the folder is named after the model's id"""
+    """Parse `folder/model.toml` and check that the folder is named after the model's id
+
+    Parameters
+    ----------
+    folder : Path
+        A model's folder in a checkout, `models/<id>`
+
+    Returns
+    -------
+    Model
+        The model
+
+    Raises
+    ------
+    RegistryError
+        If `model.toml` is not valid TOML, breaks a rule of the schema, or has another id than
+        the folder's name
+    """
     where = f"models/{folder.name}/model.toml"
     try:
         data = tomllib.loads((folder / "model.toml").read_text(encoding="utf-8"))
@@ -56,6 +104,23 @@ def read_model(folder: Path) -> Model:
 
 
 def load_checkout(root: Path) -> Registry:
+    """Read every model in a registry checkout
+
+    Parameters
+    ----------
+    root : Path
+        The checkout: a folder with a `models/` folder in it
+
+    Returns
+    -------
+    Registry
+        The models, with `root` set so that their files are read from the checkout
+
+    Raises
+    ------
+    RegistryError
+        If `root` has no `models/` folder, or a model in it is not valid
+    """
     root = Path(root)
     if not (root / "models").is_dir():
         raise RegistryError(f"{root} has no models/ folder, so it is not a registry checkout")
@@ -67,10 +132,30 @@ def load_checkout(root: Path) -> Registry:
 
 
 def bundled_path() -> Path:
+    """Return where the `registry.json` bundled with the package is
+
+    Returns
+    -------
+    Path
+        `registry.json` next to this module, which the build hook writes; a source tree that
+        was never built or installed has none
+    """
     return Path(__file__).parent / "registry.json"
 
 
 def load_bundled() -> Registry:
+    """Load the registry bundled with the package
+
+    Returns
+    -------
+    Registry
+        The models, with the commit the registry was built from
+
+    Raises
+    ------
+    RegistryError
+        If there is no bundled `registry.json`, or it is not valid for this version of odezoo
+    """
     path = bundled_path()
     if not path.is_file():
         raise RegistryError(
@@ -81,7 +166,23 @@ def load_bundled() -> Registry:
 
 
 def load(registry: Path | str | None = None) -> Registry:
-    """The registry at `registry`, else at $ODEZOO_REGISTRY, else the one bundled in odezoo"""
+    """Load the registry at `registry`, else at $ODEZOO_REGISTRY, else the one bundled in odezoo
+
+    Parameters
+    ----------
+    registry : Path | str, optional
+        A registry checkout to use instead of the bundled registry
+
+    Returns
+    -------
+    Registry
+        The registry
+
+    Raises
+    ------
+    RegistryError
+        If the checkout or the bundled registry cannot be read
+    """
     if registry is None:
         registry = os.environ.get(ENV_VAR) or None
     if registry is not None:
@@ -90,7 +191,28 @@ def load(registry: Path | str | None = None) -> Registry:
 
 
 def build(root: Path, *, commit: str | None, built: date) -> dict[str, Any]:
-    """The `registry.json` document for the checkout at `root`"""
+    """Make the `registry.json` document for the checkout at `root`
+
+    Parameters
+    ----------
+    root : Path
+        A registry checkout
+    commit : str | None
+        The commit the mirror URLs are pinned to; None if it is not known
+    built : date
+        The day of the build
+
+    Returns
+    -------
+    dict[str, Any]
+        The document: the schema version, `commit`, `built`, and every model in its JSON form,
+        sorted by id
+
+    Raises
+    ------
+    RegistryError
+        If the checkout is not valid
+    """
     registry = load_checkout(root)
     return {
         "schema": SCHEMA_VERSION,
@@ -101,6 +223,23 @@ def build(root: Path, *, commit: str | None, built: date) -> dict[str, Any]:
 
 
 def from_json(data: Mapping[str, Any]) -> Registry:
+    """Read a `registry.json` document
+
+    Parameters
+    ----------
+    data : Mapping[str, Any]
+        The parsed document, as `build` makes it
+
+    Returns
+    -------
+    Registry
+        The models, with the commit the document was built from
+
+    Raises
+    ------
+    RegistryError
+        If the document has another schema version, or a model in it is not valid
+    """
     if data.get("schema") != SCHEMA_VERSION:
         raise RegistryError(
             f"registry.json has schema {data.get('schema')!r} and this odezoo reads schema "
@@ -114,7 +253,18 @@ def from_json(data: Mapping[str, Any]) -> Registry:
 
 
 def resolve_commit(root: Path) -> str | None:
-    """The commit checked out at `root`, or None if that cannot be found out"""
+    """Find the commit checked out at `root`
+
+    Parameters
+    ----------
+    root : Path
+        A git checkout
+
+    Returns
+    -------
+    str | None
+        The full commit id, or None if git is missing or `root` is not a checkout
+    """
     try:
         out = subprocess.run(
             ["git", "-C", str(root), "rev-parse", "HEAD"],

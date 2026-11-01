@@ -30,9 +30,17 @@ PARSER_OPTIONS: dict[str, Any] = {"suggest_on_error": True} if sys.version_info 
 
 
 def _global_options(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
-    """--registry and --cache-dir, accepted before and after the command
+    """Add --registry and --cache-dir, which are accepted before and after the command
 
     On the subcommands the default is SUPPRESS, so a value given before the command is kept.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        The top-level parser, or a subcommand's parser
+    suppress : bool
+        Whether to leave the options out of the namespace when they are not given, as the
+        subcommands must
     """
     default = argparse.SUPPRESS if suppress else None
     group = parser.add_argument_group("global options")
@@ -51,6 +59,24 @@ def _global_options(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
 
 
 def _command(commands: Any, name: str, help: str, handler: Handler) -> argparse.ArgumentParser:
+    """Add a subcommand that runs `handler`
+
+    Parameters
+    ----------
+    commands : Any
+        The subparsers action to add it to
+    name : str
+        The subcommand's name
+    help : str
+        One line about it, for its own help and the help of the command above it
+    handler : Handler
+        The function that runs it
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        The subcommand's parser, for adding its arguments
+    """
     parser = commands.add_parser(name, help=help, description=help, **PARSER_OPTIONS)
     _global_options(parser, suppress=True)
     parser.set_defaults(handler=handler)
@@ -58,6 +84,18 @@ def _command(commands: Any, name: str, help: str, handler: Handler) -> argparse.
 
 
 def _search(args: argparse.Namespace) -> int:
+    """Run `odezoo search`: print the matching models as a table, as ids, or as JSON
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
     found = api.search(
         " ".join(args.text),
         category=args.category,
@@ -84,6 +122,18 @@ def _search(args: argparse.Namespace) -> int:
 
 
 def _info(args: argparse.Namespace) -> int:
+    """Run `odezoo info`: print one model's details, or its JSON
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
     model = api.model(args.id, registry=args.registry)
     if args.json:
         print(json.dumps(model_to_dict(model), indent=2))
@@ -95,6 +145,26 @@ def _info(args: argparse.Namespace) -> int:
 
 
 def _fetch(args: argparse.Namespace) -> int:
+    """Run `odezoo fetch`: write each model's file into the output folder
+
+    A model that fails is reported, and the others are still fetched. With more than one id and
+    output to a terminal, a progress bar shows.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code: 0 if every file was fetched, else 1
+
+    Raises
+    ------
+    OdezooError
+        If the output folder is a file or cannot be made
+    """
     ids = list(dict.fromkeys(args.ids))
     if args.version is not None and len(ids) > 1:
         args.command_parser.error("--version can only be used with one model id")
@@ -137,11 +207,35 @@ def _fetch(args: argparse.Namespace) -> int:
 
 
 def _cache_dir(args: argparse.Namespace) -> int:
+    """Run `odezoo cache dir`: print the cache folder
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
     print(cache_dir(args.cache_dir))
     return 0
 
 
 def _cache_clear(args: argparse.Namespace) -> int:
+    """Run `odezoo cache clear`: delete the cached files, and say how many there were
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
     directory = cache_dir(args.cache_dir)
     removed = Cache(directory).clear()
     print(f"Removed {removed} file{'' if removed == 1 else 's'} from {directory}")
@@ -149,7 +243,23 @@ def _cache_clear(args: argparse.Namespace) -> int:
 
 
 def _registry_root(args: argparse.Namespace) -> Path:
-    """The checkout the maintainer commands work on: --registry, $ODEZOO_REGISTRY, or here"""
+    """Find the checkout the maintainer commands work on: --registry, $ODEZOO_REGISTRY, or here
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    Path
+        The checkout
+
+    Raises
+    ------
+    RegistryError
+        If that folder has no `models/` folder
+    """
     root = Path(args.registry or os.environ.get(REGISTRY_ENV_VAR) or ".")
     if not (root / "models").is_dir():
         raise RegistryError(
@@ -160,6 +270,18 @@ def _registry_root(args: argparse.Namespace) -> Path:
 
 
 def _registry_check(args: argparse.Namespace) -> int:
+    """Run `odezoo registry check`: check the checkout's models and print what is wrong
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code: 0 if there are no errors (warnings are allowed), else 1
+    """
     from . import render
     from .maintain.check import check
 
@@ -169,6 +291,20 @@ def _registry_check(args: argparse.Namespace) -> int:
 
 
 def _registry_build(args: argparse.Namespace) -> int:
+    """Run `odezoo registry build`: write the checkout's `registry.json`
+
+    The mirror URLs are pinned to $ODEZOO_REGISTRY_COMMIT, else to the checkout's commit.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
     root = _registry_root(args)
     commit = os.environ.get("ODEZOO_REGISTRY_COMMIT") or resolve_commit(root)
     data = build(root, commit=commit, built=date.today())
@@ -179,6 +315,18 @@ def _registry_build(args: argparse.Namespace) -> int:
 
 
 def _registry_add_version(args: argparse.Namespace) -> int:
+    """Run `odezoo registry add version`: add an edited file as a new version of a model
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
     from .maintain.version import add_version
 
     version = add_version(
@@ -194,10 +342,37 @@ def _registry_add_version(args: argparse.Namespace) -> int:
 
 
 def _group(commands: Any, name: str, help: str) -> tuple[argparse.ArgumentParser, Any]:
-    """A command that only holds subcommands; on its own it prints its help (exit 2)"""
+    """Add a command that only holds subcommands; on its own it prints its help (exit 2)
+
+    Parameters
+    ----------
+    commands : Any
+        The subparsers action to add it to
+    name : str
+        The command's name
+    help : str
+        One line about it
+
+    Returns
+    -------
+    tuple[argparse.ArgumentParser, Any]
+        The command's parser, and the subparsers action to add its subcommands to
+    """
     parser = commands.add_parser(name, help=help, description=help, **PARSER_OPTIONS)
 
     def usage(args: argparse.Namespace) -> int:
+        """Print the command's help, as it was run without a subcommand
+
+        Parameters
+        ----------
+        args : argparse.Namespace
+            The parsed command line, which is not used
+
+        Returns
+        -------
+        int
+            The exit code of a usage error, 2
+        """
         parser.print_help(sys.stderr)
         return 2
 
@@ -206,6 +381,13 @@ def _group(commands: Any, name: str, help: str) -> tuple[argparse.ArgumentParser
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the parser for the `odezoo` command line
+
+    Returns
+    -------
+    argparse.ArgumentParser
+        The parser; each command sets `handler` in the namespace to the function that runs it
+    """
     parser = argparse.ArgumentParser(
         prog="odezoo",
         description="Search the odezoo registry of ODE models and fetch their files.",
@@ -267,6 +449,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the `odezoo` command line
+
+    Errors odezoo raises on purpose, and files or folders that cannot be read or written, are
+    printed without a traceback.
+
+    Parameters
+    ----------
+    argv : Sequence[str], optional
+        The arguments, by default `sys.argv[1:]`
+
+    Returns
+    -------
+    int
+        The exit code: 0 on success, 1 on an error, 2 when a command is missing, and 130 when
+        interrupted. A malformed command line exits with 2 from argparse itself.
+    """
     parser = build_parser()
     args = parser.parse_args(argv)
     handler: Handler | None = getattr(args, "handler", None)

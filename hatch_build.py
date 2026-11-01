@@ -15,7 +15,26 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 
 class CustomBuildHook(BuildHookInterface):
+    """Hatchling build hook that bundles the registry into the package"""
+
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
+        """Write `src/odezoo/registry.json` from the checkout's `models/` before a build
+
+        A build without `models/`, such as a wheel built from an sdist, uses the
+        `registry.json` the sdist carries.
+
+        Parameters
+        ----------
+        version : str
+            The version of the build target, such as `standard` or `editable`
+        build_data : dict[str, Any]
+            The build data hatchling passes; left as it is
+
+        Raises
+        ------
+        RuntimeError
+            If there is neither a `models/` folder nor a `registry.json` to bundle
+        """
         root = Path(self.root)
         target = root / "src" / "odezoo" / "registry.json"
         if (root / "models").is_dir():

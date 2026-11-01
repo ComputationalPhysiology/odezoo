@@ -21,26 +21,81 @@ from .schema import Model, Paper
 
 
 def console(*, stderr: bool = False) -> Console:
-    """A console on the current stdout or stderr; made per call so captured streams are used"""
+    """Make a console on the current stdout or stderr; one per call, so captured streams are used
+
+    Parameters
+    ----------
+    stderr : bool, optional
+        Whether to write to stderr instead of stdout, by default False
+
+    Returns
+    -------
+    Console
+        The console, without automatic highlighting
+    """
     return Console(stderr=stderr, highlight=False)
 
 
 def symbols(out: Console) -> tuple[str, str, str]:
-    """Success, failure and arrow marks; plain ASCII when the output cannot encode ✓ and ✗"""
+    """Return success, failure and arrow marks; plain ASCII when the output cannot encode ✓ and ✗
+
+    Parameters
+    ----------
+    out : Console
+        The console the marks will be printed on
+
+    Returns
+    -------
+    tuple[str, str, str]
+        `✓`, `✗` and `→` for a UTF encoding, else `OK`, `FAIL` and `->`
+    """
     if out.encoding.lower().replace("-", "").startswith("utf"):
         return ("✓", "✗", "→")
     return ("OK", "FAIL", "->")
 
 
 def _link(url: str) -> Text:
+    """Make a URL clickable, in terminals that support links
+
+    Parameters
+    ----------
+    url : str
+        The URL
+
+    Returns
+    -------
+    Text
+        The URL as text that links to itself
+    """
     return Text(url, style=Style(link=url))
 
 
 def _citation(paper: Paper) -> str:
+    """Write a paper as a one-line citation
+
+    Parameters
+    ----------
+    paper : Paper
+        The paper
+
+    Returns
+    -------
+    str
+        Authors (year). Title. Journal.
+    """
     return f"{', '.join(paper.authors)} ({paper.year}). {paper.title}. {paper.journal}."
 
 
 def print_models(models: Sequence[Model], out: Console) -> None:
+    """Print models as a table of id, name, year, formats and categories
+
+    Parameters
+    ----------
+    models : Sequence[Model]
+        The models, in the order to print them
+    out : Console
+        Where to print
+    """
     table = Table()
     table.add_column("ID", no_wrap=True, style="bold cyan")
     table.add_column("Name")
@@ -59,6 +114,15 @@ def print_models(models: Sequence[Model], out: Console) -> None:
 
 
 def print_model(model: Model, out: Console) -> None:
+    """Print one model: its details, then a table of its versions
+
+    Parameters
+    ----------
+    model : Model
+        The model
+    out : Console
+        Where to print
+    """
     out.print(Text.assemble((model.name, "bold"), f"  ({model.id})"))
     rows: list[tuple[str, Text | str]] = []
     if model.family:
@@ -113,12 +177,34 @@ def print_model(model: Model, out: Console) -> None:
 
 
 def print_fetched(model_id: str, path: Path, out: Console) -> None:
+    """Print that a model's file was fetched, and where it is
+
+    Parameters
+    ----------
+    model_id : str
+        The model id, as it was asked for
+    path : Path
+        Where the file is
+    out : Console
+        Where to print
+    """
     ok, _, arrow = symbols(out)
     # soft_wrap: a path split over two lines is a broken path for whoever copies or parses it.
     out.print(Text.assemble((ok, "bold green"), f" {model_id} {arrow} {path}"), soft_wrap=True)
 
 
 def print_error(error: Exception, out: Console, *, prefix: str = "") -> None:
+    """Print an error on one line, and for a `FetchError` a table of the places tried
+
+    Parameters
+    ----------
+    error : Exception
+        The error
+    out : Console
+        Where to print
+    prefix : str, optional
+        Text to put before the message, such as the model id; by default none
+    """
     _, fail, _ = symbols(out)
     if isinstance(error, FetchError):
         message = f"could not fetch {error.model_id} {error.version_id}"
@@ -133,6 +219,15 @@ def print_error(error: Exception, out: Console, *, prefix: str = "") -> None:
 
 
 def print_report(report: Report, out: Console) -> None:
+    """Print what `odezoo registry check` found: errors, warnings, then the counts
+
+    Parameters
+    ----------
+    report : Report
+        The report
+    out : Console
+        Where to print
+    """
     for error in report.errors:
         out.print(Text(error, style="red"))
     for warning in report.warnings:

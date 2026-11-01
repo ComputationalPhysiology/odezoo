@@ -9,8 +9,31 @@ from .schema import Model, Version
 def choose_version(
     model: Model, *, version: str | None = None, format: str | None = None
 ) -> Version:
-    """The version asked for; else the default version, if it has the format asked for; else the
-    newest version in that format (or of any format)"""
+    """Choose the version of `model` to fetch
+
+    That is `version` if it is given; else the default version, if it is in `format`; else the
+    newest version in `format` (or of any format).
+
+    Parameters
+    ----------
+    model : Model
+        The model
+    version : str, optional
+        The id of the version to fetch
+    format : str, optional
+        The format the version must be in, `cellml` or `ode`
+
+    Returns
+    -------
+    Version
+        The chosen version
+
+    Raises
+    ------
+    VersionNotFound
+        If the model has no version `version`, that version is not in `format`, or the model has
+        no version in `format`
+    """
     if version is not None:
         chosen = model.version(version)
         if format is not None and chosen.format != format:

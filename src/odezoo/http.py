@@ -26,6 +26,18 @@ MAX_RETRY_AFTER = 60.0
 
 
 class HttpError(OdezooError):
+    """A download failed: an HTTP error status, or no answer at all
+
+    Parameters
+    ----------
+    url : str
+        The URL that was asked for
+    status : int | None
+        The HTTP status, or None if there was no HTTP answer
+    reason : str
+        A short reason, such as `HTTP 404` or the network error
+    """
+
     def __init__(self, url: str, status: int | None, reason: str):
         self.url = url
         self.status = status
@@ -34,6 +46,22 @@ class HttpError(OdezooError):
 
 
 class Http:
+    """An HTTP client that spaces out requests to each host and retries "slow down" answers
+
+    Parameters
+    ----------
+    default_interval : float, optional
+        Seconds between requests to one host, by default 1.0
+    host_intervals : Mapping[str, float], optional
+        Other intervals for some hosts, by default 0.2 seconds for the GitHub mirror
+    timeout : float, optional
+        Seconds to wait for a host to answer, by default 30.0
+    clock : Callable[[], float], optional
+        The clock intervals are measured with, by default `time.monotonic`
+    sleep : Callable[[float], None], optional
+        How to wait, by default `time.sleep`
+    """
+
     def __init__(
         self,
         *,
@@ -51,11 +79,24 @@ class Http:
         self._last: dict[str, float] = {}
 
     def _pause(self, seconds: float) -> None:
+        """Wait `seconds`, if that is more than nothing
+
+        Parameters
+        ----------
+        seconds : float
+            How long to wait; zero or less returns at once
+        """
         if seconds > 0:
             self._sleep(seconds)
 
     def _space(self, host: str) -> None:
-        """Wait until the host's interval has passed since the last request to it"""
+        """Wait until the host's interval has passed since the last request to it
+
+        Parameters
+        ----------
+        host : str
+            The host the next request goes to
+        """
         last = self._last.get(host)
         if last is not None:
             interval = self.host_intervals.get(host, self.default_interval)
@@ -64,11 +105,45 @@ class Http:
 
     @staticmethod
     def _retry_wait(retry_after: str | None, attempt: int) -> float:
+        """Return how long to wait before retrying a "slow down" answer
+
+        Parameters
+        ----------
+        retry_after : str | None
+            The answer's Retry-After header, if it has one
+        attempt : int
+            How many retries there have been already, from 0
+
+        Returns
+        -------
+        float
+            The header's seconds, at most 60, if it gives seconds; else 2, 4 or 8 seconds for
+            the first, second and third retry
+        """
         if retry_after is not None and retry_after.strip().isdigit():
             return min(float(retry_after), MAX_RETRY_AFTER)
         return RETRY_WAITS[attempt]
 
     def get(self, url: str) -> bytes:
+        """Download `url`
+
+        A 429 or 503 answer is retried up to three times; any other failure is final.
+
+        Parameters
+        ----------
+        url : str
+            The URL
+
+        Returns
+        -------
+        bytes
+            The body
+
+        Raises
+        ------
+        HttpError
+            If the download fails, with the status or the network error as the reason
+        """
         host = urlsplit(url).hostname or ""
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         for attempt in range(len(RETRY_WAITS) + 1):
@@ -97,7 +172,13 @@ _client: Http | None = None
 
 
 def client() -> Http:
-    """The process-wide client, so request spacing holds across every download in a run"""
+    """Return the process-wide client, so request spacing holds across every download in a run
+
+    Returns
+    -------
+    Http
+        The client, made on the first call
+    """
     global _client
     if _client is None:
         _client = Http()

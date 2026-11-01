@@ -26,17 +26,42 @@ CELLML_IMPORTS = {f"{{{ns}}}import" for ns in CELLML_NAMESPACES}
 
 @dataclass
 class Report:
+    """What `odezoo registry check` found
+
+    Attributes
+    ----------
+    errors : list[str]
+        Problems that make the registry wrong, each starting with the file it is in
+    warnings : list[str]
+        Things worth a look that do not make it wrong
+    checked : int
+        The number of models checked
+    """
+
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     checked: int = 0
 
     @property
     def ok(self) -> bool:
+        """Whether the check found no errors; warnings are allowed"""
         return not self.errors
 
 
 def cellml_problem(data: bytes) -> str | None:
-    """Why `data` is not a self-contained CellML model, or None"""
+    """Find why `data` is not a self-contained CellML model
+
+    Parameters
+    ----------
+    data : bytes
+        A file's bytes
+
+    Returns
+    -------
+    str | None
+        The problem (not well-formed XML, no CellML model at the root, or an `<import>`), or
+        None if there is none
+    """
     try:
         root = ElementTree.fromstring(data)
     except ElementTree.ParseError as e:
@@ -50,6 +75,14 @@ def cellml_problem(data: bytes) -> str | None:
 
 
 class _Checker:
+    """Check models one by one, collecting what is wrong in `report`
+
+    Parameters
+    ----------
+    root : Path
+        The registry checkout
+    """
+
     def __init__(self, root: Path):
         self.root = root
         self.report = Report()
@@ -57,7 +90,13 @@ class _Checker:
         self._gotranx_tried = False
 
     def gotranx(self) -> ModuleType | None:
-        """gotranx, imported the first time an .ode file is seen; None (with a warning) if absent"""
+        """Import gotranx when the first .ode file is seen, warning once if it is not installed
+
+        Returns
+        -------
+        ModuleType | None
+            gotranx, or None if it is not installed
+        """
         if not self._gotranx_tried:
             self._gotranx_tried = True
             try:
@@ -69,6 +108,13 @@ class _Checker:
         return self._gotranx
 
     def model(self, folder: Path) -> None:
+        """Check one model's folder: its `model.toml`, then its files
+
+        Parameters
+        ----------
+        folder : Path
+            The model's folder, `models/<id>`
+        """
         self.report.checked += 1
         if not (folder / "model.toml").is_file():
             self.report.errors.append(f"models/{folder.name}: has no model.toml")
@@ -81,6 +127,20 @@ class _Checker:
         self.files(folder, model)
 
     def files(self, folder: Path, model: Model) -> None:
+        """Check the files of a model whose `model.toml` is valid
+
+        Each copy must be there, have the recorded sha256, have its licence text in `LICENSES/`,
+        and load: CellML as a self-contained model, `.ode` with gotranx if it is installed. A
+        file no version refers to is an error; a version whose licence is not its parent's is a
+        warning.
+
+        Parameters
+        ----------
+        folder : Path
+            The model's folder, `models/<id>`
+        model : Model
+            The model read from it
+        """
         errors, warnings = self.report.errors, self.report.warnings
         prefix = f"models/{folder.name}"
         versions = {v.id: v for v in model.versions}
@@ -118,7 +178,25 @@ class _Checker:
 
 
 def check(root: Path, ids: Sequence[str] | None = None) -> Report:
-    """Check the models in the checkout at `root` (all of them, or the ones named in `ids`)"""
+    """Check the models in the checkout at `root` (all of them, or the ones named in `ids`)
+
+    Parameters
+    ----------
+    root : Path
+        The registry checkout
+    ids : Sequence[str], optional
+        The models to check, by default all of them; an id with no folder is an error
+
+    Returns
+    -------
+    Report
+        The errors and warnings found, and the number of models checked
+
+    Raises
+    ------
+    RegistryError
+        If `root` has no `models/` folder
+    """
     root = Path(root)
     if not (root / "models").is_dir():
         raise RegistryError(f"{root} has no models/ folder, so it is not a registry checkout")

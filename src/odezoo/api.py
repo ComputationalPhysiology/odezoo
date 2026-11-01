@@ -17,12 +17,42 @@ from .search import search as search_models
 
 
 def models(*, registry: Path | str | None = None) -> list[Model]:
-    """Every model in the registry, sorted by id"""
+    """List every model in the registry
+
+    Parameters
+    ----------
+    registry : Path | str, optional
+        A registry checkout to use instead of $ODEZOO_REGISTRY or the bundled registry
+
+    Returns
+    -------
+    list[Model]
+        The models, sorted by id
+    """
     reg = load_registry(registry)
     return [reg.models[id] for id in sorted(reg.models)]
 
 
 def model(id: str, *, registry: Path | str | None = None) -> Model:
+    """Look up one model
+
+    Parameters
+    ----------
+    id : str
+        The model's id; other capitals and surrounding spaces are forgiven
+    registry : Path | str, optional
+        A registry checkout to use instead of $ODEZOO_REGISTRY or the bundled registry
+
+    Returns
+    -------
+    Model
+        The model: its paper, keywords, versions and sources
+
+    Raises
+    ------
+    ModelNotFound
+        If no model has that id; the message suggests similar ones
+    """
     return load_registry(registry).get(id)
 
 
@@ -36,6 +66,34 @@ def search(
     reviewed: bool | None = None,
     registry: Path | str | None = None,
 ) -> list[Model]:
+    """Find models by text and filters
+
+    Every word of `text` must occur somewhere in the model's id, name, family, paper title and
+    authors, keywords, cell type or species. Several values for one filter are alternatives;
+    different filters must all hold.
+
+    Parameters
+    ----------
+    text : str, optional
+        Words that must all occur, in any case; by default none
+    category : str | Sequence[str], optional
+        Categories, from `odezoo.schema.CATEGORIES`, of which a model must have one
+    keyword : str | Sequence[str], optional
+        Keywords of which a model must have one
+    species : str | Sequence[str], optional
+        Species, in any case, one of which must be the model's
+    format : str, optional
+        A format, `cellml` or `ode`, that the model must have a version in
+    reviewed : bool, optional
+        True for reviewed models only, False for unreviewed ones only
+    registry : Path | str, optional
+        A registry checkout to use instead of $ODEZOO_REGISTRY or the bundled registry
+
+    Returns
+    -------
+    list[Model]
+        The matching models, sorted by id
+    """
     return search_models(
         load_registry(registry).models.values(),
         text,
@@ -60,8 +118,49 @@ def get(
 ) -> Path:
     """Fetch a model's file, verified by its sha256, and return where it is
 
-    Without `dest` this is the file in the cache (or in the registry checkout). An existing
-    folder as `dest` gets `<id>.<ext>` in it; anything else is the path to write.
+    The file is taken from the registry checkout, the cache, this repository's copy on GitHub or
+    upstream, in that order, and only with the sha256 the registry records for it.
+
+    Parameters
+    ----------
+    id : str
+        The model's id
+    version : str, optional
+        The version to fetch; by default the model's default version, else its newest
+    format : str, optional
+        `cellml` or `ode`: the version must be in this format
+    dest : Path | str, optional
+        Where to write the file: an existing folder gets `<id>.<ext>` in it, and anything else
+        is the path of the file. By default the file is not copied, and its path in the cache
+        (or in the registry checkout) is returned.
+    cache : bool, optional
+        Whether to read and write the cache, by default True; False needs `dest`
+    cache_dir : Path | str, optional
+        The cache folder, by default $ODEZOO_CACHE_DIR or else the platform's cache folder
+    registry : Path | str, optional
+        A registry checkout to use instead of $ODEZOO_REGISTRY or the bundled registry
+    force : bool, optional
+        Whether to overwrite a different file at the destination, by default False
+
+    Returns
+    -------
+    Path
+        The file
+
+    Raises
+    ------
+    ModelNotFound
+        If no model has that id
+    VersionNotFound
+        If the model has no such version, or none in `format`
+    FetchError
+        If no place gave the file with the recorded sha256
+    OutputExistsError
+        If the destination holds a different file and `force` is False
+    OdezooError
+        If the file cannot be kept in the cache and `dest` is not given
+    ValueError
+        If `cache` is False and `dest` is not given
     """
     if not cache and dest is None:
         raise ValueError("get(cache=False) needs dest: without the cache the file has no home")

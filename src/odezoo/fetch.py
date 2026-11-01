@@ -18,11 +18,38 @@ from .schema import Model, Version
 
 
 def sha256_hex(data: bytes) -> str:
+    """Hash `data` the way the registry records files
+
+    Parameters
+    ----------
+    data : bytes
+        A file's bytes
+
+    Returns
+    -------
+    str
+        The sha256, as 64 lowercase hex digits
+    """
     return hashlib.sha256(data).hexdigest()
 
 
 def mirror_url(registry: Registry, model: Model, version: Version) -> str | None:
-    """The copy of the file in this repository on GitHub, at the registry's commit"""
+    """Return the URL of this repository's copy of the file on GitHub, at the registry's commit
+
+    Parameters
+    ----------
+    registry : Registry
+        The registry the model is from; its `commit` pins the URL
+    model : Model
+        The model
+    version : Version
+        The version
+
+    Returns
+    -------
+    str | None
+        The URL, or None if the version has no copy here or the registry's commit is not known
+    """
     if version.file is None or registry.commit is None:
         return None
     return f"{registry.mirror_base}/{registry.commit}/models/{model.id}/{version.file}"
@@ -31,10 +58,52 @@ def mirror_url(registry: Registry, model: Model, version: Version) -> str | None
 def fetch_bytes(
     registry: Registry, model: Model, version: Version, *, cache: Cache | None, http: Http
 ) -> tuple[bytes, Path | None]:
-    """The version's bytes, and the path where they are kept (None if they are only in memory)"""
+    """Get a version's bytes from the first place that has them with the recorded sha256
+
+    The places are the file in a registry checkout, the cache, the mirror and upstream, in that
+    order. Downloaded bytes are written to the cache; a cache that cannot be written is skipped.
+
+    Parameters
+    ----------
+    registry : Registry
+        The registry the model is from
+    model : Model
+        The model
+    version : Version
+        The version to fetch
+    cache : Cache | None
+        The cache to read and write, or None to leave it out
+    http : Http
+        The client to download with
+
+    Returns
+    -------
+    tuple[bytes, Path | None]
+        The bytes, and where they are kept: the file in the checkout or in the cache, or None if
+        they are only in memory
+
+    Raises
+    ------
+    FetchError
+        If no place has the bytes, with every place tried and why it failed
+    """
     attempts: list[Attempt] = []
 
     def verified(data: bytes, source: str) -> bool:
+        """Check `data` against the version's sha256, recording a mismatch as an attempt
+
+        Parameters
+        ----------
+        data : bytes
+            Bytes from `source`
+        source : str
+            The path or URL they came from
+
+        Returns
+        -------
+        bool
+            Whether `data` has the recorded sha256
+        """
         if sha256_hex(data) == version.sha256:
             return True
         attempts.append(Attempt(source, "sha256 mismatch"))
@@ -77,7 +146,29 @@ def fetch_bytes(
 
 
 def write_output(data: bytes, target: Path, *, force: bool = False) -> Path:
-    """Write `data` to `target`, creating folders; an identical file there is left alone"""
+    """Write `data` to `target`, creating folders; an identical file there is left alone
+
+    Parameters
+    ----------
+    data : bytes
+        The file's bytes
+    target : Path
+        The file to write
+    force : bool, optional
+        Whether to overwrite a different file, by default False
+
+    Returns
+    -------
+    Path
+        `target`
+
+    Raises
+    ------
+    OutputExistsError
+        If `target` holds different bytes and `force` is False
+    OdezooError
+        If `target` is a folder
+    """
     target = Path(target)
     if target.is_dir():
         raise OdezooError(f"{target} is a folder, not a file")
