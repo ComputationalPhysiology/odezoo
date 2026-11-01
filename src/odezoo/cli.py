@@ -175,6 +175,21 @@ def _registry_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def _registry_add_version(args: argparse.Namespace) -> int:
+    from odezoo.maintain.version import add_version
+
+    version = add_version(
+        _registry_root(args),
+        args.id,
+        Path(args.file),
+        derived_from=args.derived_from,
+        license=args.license,
+        notes=args.notes,
+    )
+    print(f"Added {args.id} {version.id} ({version.format})")
+    return 0
+
+
 def _group(commands: Any, name: str, help: str) -> tuple[argparse.ArgumentParser, Any]:
     """A command that only holds subcommands; on its own it prints its help (exit 2)"""
     parser = commands.add_parser(name, help=help, description=help, **PARSER_OPTIONS)
@@ -238,6 +253,13 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("ids", nargs="*", metavar="ID", help="only these models")
     build_command = _command(registry, "build", "write registry.json", _registry_build)
     build_command.add_argument("-o", "--output", default="registry.json", metavar="PATH")
+    _, add = _group(registry, "add", "add models or versions to the checkout")
+    version = _command(add, "version", "add our own file as a new version", _registry_add_version)
+    version.add_argument("id", metavar="ID")
+    version.add_argument("file", metavar="FILE", help="a .cellml or .ode file")
+    version.add_argument("--derived-from", required=True, metavar="V", help="the version it edits")
+    version.add_argument("--license", metavar="SPDX", help="default: that of --derived-from")
+    version.add_argument("--notes", metavar="TEXT", help="what was changed, and why")
     return parser
 
 
