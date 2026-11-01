@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,7 @@ from helpers import CELLML_BYTES, FakeServer, make_model, write_checkout
 
 import odezoo.http
 from odezoo.http import Http
+from odezoo.schema import Source
 
 LOCALHOST = ["127.0.0.1", "::1"]
 
@@ -39,3 +41,12 @@ def http_server() -> Iterator[FakeServer]:
 def checkout(tmp_path: Path) -> Path:
     """A registry checkout holding the Beeler–Reuter test model and its CellML file"""
     return write_checkout(tmp_path / "reg", [(make_model(), {"pmr-cb090c9.cellml": CELLML_BYTES})])
+
+
+@pytest.fixture
+def remote_checkout(http_server: FakeServer, tmp_path: Path) -> Path:
+    """A checkout whose one version is not kept in it: every fetch goes to the local server"""
+    model = make_model()
+    url = http_server.add("/up/br.cellml", CELLML_BYTES)
+    version = replace(model.versions[0], file=None, source=Source(type="url", url=url))
+    return write_checkout(tmp_path / "remote", [(replace(model, versions=(version,)), {})])
