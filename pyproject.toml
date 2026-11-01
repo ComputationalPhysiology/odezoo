@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "odezoo"
+version = "0.1.0"
+description = "A curated registry of ODE models (CellML and gotranx .ode), fetched and verified by sha256"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Henrik Finsberg", email = "henriknf@simula.no" }]
+dependencies = ["rich"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "pytest-socket", "hatchling"]
+dev = ["pre-commit", "odezoo[test]"]
+
+[project.urls]
+Homepage = "https://github.com/ComputationalPhysiology/odezoo"
+Source = "https://github.com/ComputationalPhysiology/odezoo"
+
+[project.scripts]
+odezoo = "odezoo.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/odezoo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+addopts = "-m 'not network'"
+markers = ["network: reaches the real network; run by hand only"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+files = ["src/odezoo", "tests"]
+ignore_missing_imports = true

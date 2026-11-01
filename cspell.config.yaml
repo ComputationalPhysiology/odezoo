@@ -1,0 +1,16 @@
+version: "0.2"
+language: en-GB
+dictionaries:
+  - python
+  - softwareTerms
+words:
+  - odezoo
+  - cellml
+  - physiome
+  - zenodo
+  - pubmed
+  - tusscher
+  - hatchling
+  - gotranx
+  - windkessel
+  - modifyitems

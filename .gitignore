@@ -1,0 +1,8 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+.coverage
+_build/
+.venv/
+src/odezoo/registry.json
