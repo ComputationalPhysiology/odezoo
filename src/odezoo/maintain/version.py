@@ -42,14 +42,19 @@ def add_version(
             f"{file.name}: {file.suffix or 'no suffix'} is not one of {', '.join(formats)}"
         )
     model = load_checkout(root).get(model_id)
-    parent = model.version(derived_from) if derived_from in {v.id for v in model.versions} else None
+    if derived_from not in {v.id for v in model.versions}:
+        ids = ", ".join(v.id for v in model.versions)
+        raise RegistryError(
+            f"{model.id} has no version {derived_from!r} to derive from; it has {ids}"
+        )
+    parent = model.version(derived_from)
     data = file.read_bytes()
     vid = next_version_id(model)
     version = Version(
         id=vid,
         format=format,
         sha256=sha256_hex(data),
-        license=license or (parent.license if parent else "unknown"),
+        license=license or parent.license,
         added=today or date.today(),
         file=f"{vid}{FORMATS[format]}",
         derived_from=derived_from,

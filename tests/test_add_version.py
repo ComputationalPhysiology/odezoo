@@ -66,3 +66,10 @@ def test_existing_file_is_never_overwritten(checkout, tmp_path):
     with pytest.raises(RegistryError, match="v1.ode"):
         add_version(checkout, "beeler_reuter_1977", src, derived_from="pmr-cb090c9")
     assert (checkout / BR / "v1.ode").read_bytes() == b"someone's work"
+
+
+def test_unknown_parent_is_named(checkout, tmp_path):
+    src = tmp_path / "br.ode"
+    src.write_bytes(b"x")
+    with pytest.raises(RegistryError, match="nope"):
+        add_version(checkout, "beeler_reuter_1977", src, derived_from="nope")
