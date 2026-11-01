@@ -90,3 +90,12 @@ def test_ascii_fallback_on_cp1252():
 def test_ctrl_c_returns_130(monkeypatch, checkout):
     monkeypatch.setattr(odezoo.api, "get", Mock(side_effect=KeyboardInterrupt))
     assert main(["--registry", str(checkout), "fetch", "beeler_reuter_1977"]) == 130
+
+
+def test_fetched_path_is_never_wrapped():
+    stream = io.StringIO()
+    path = Path(
+        "/a/very/long/folder/name/that/is/longer/than/the/console/beeler_reuter_1977.cellml"
+    )
+    print_fetched("beeler_reuter_1977", path, Console(file=stream, width=40))
+    assert str(path) in stream.getvalue()

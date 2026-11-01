@@ -3,8 +3,11 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Model files and licence texts are kept byte for byte: their sha256 is their identity.
       - id: trailing-whitespace
+        exclude: ^(models|LICENSES)/
       - id: end-of-file-fixer
+        exclude: ^(models|LICENSES)/
       - id: check-yaml
       - id: check-added-large-files
       - id: check-toml

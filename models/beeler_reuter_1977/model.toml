@@ -1,0 +1,31 @@
+id = "beeler_reuter_1977"
+name = "Beeler–Reuter 1977"
+categories = ["electrophysiology"]
+keywords = ["cardiac", "ventricular myocyte"]
+species = "canine"
+cell_type = "ventricular myocyte"
+reviewed = true
+default_version = "pmr-cb090c9"
+
+[paper]
+title = "Reconstruction of the action potential of ventricular myocardial fibres"
+authors = ["Beeler GW", "Reuter H"]
+journal = "Journal of Physiology"
+year = 1977
+doi = "10.1113/jphysiol.1977.sp011853"
+pubmed = 874889
+
+[[versions]]
+id = "pmr-cb090c9"
+format = "cellml"
+sha256 = "f9bcc643f7a9e85f56176521cc08b86c00a14b66bd0c14be1a8f05a956818274"
+license = "CC-BY-3.0"
+file = "pmr-cb090c9.cellml"
+added = 2026-11-01
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/beeler_reuter_1977"
+commit = "cb090c96a2ce627457b14def4910ac39219b8340"
+path = "beeler_reuter_1977.cellml"
+exposure = "https://models.physiomeproject.org/e/c1"

@@ -114,7 +114,8 @@ def print_model(model: Model, out: Console) -> None:
 
 def print_fetched(model_id: str, path: Path, out: Console) -> None:
     ok, _, arrow = symbols(out)
-    out.print(Text.assemble((ok, "bold green"), f" {model_id} {arrow} {path}"))
+    # soft_wrap: a path split over two lines is a broken path for whoever copies or parses it.
+    out.print(Text.assemble((ok, "bold green"), f" {model_id} {arrow} {path}"), soft_wrap=True)
 
 
 def print_error(error: OdezooError, out: Console, *, prefix: str = "") -> None:
@@ -123,7 +124,7 @@ def print_error(error: OdezooError, out: Console, *, prefix: str = "") -> None:
         message = f"could not fetch {error.model_id} {error.version_id}"
     else:
         message = str(error)
-    out.print(Text.assemble((fail, "bold red"), f" {prefix}{message}"))
+    out.print(Text.assemble((fail, "bold red"), f" {prefix}{message}"), soft_wrap=True)
     if isinstance(error, FetchError) and error.attempts:
         table = Table("Tried", "Why it failed")
         for attempt in error.attempts:
