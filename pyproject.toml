@@ -33,7 +33,16 @@ artifacts = ["src/odezoo/registry.json"]
 packages = ["src/odezoo"]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/models", "/docs", "/.github"]
+# An allow-list: local files (docs/superpowers/, .superpowers/) must never be published.
+only-include = [
+  "/src",
+  "/tests",
+  "/hatch_build.py",
+  "/README.md",
+  "/LICENSE",
+  "/LICENSES",
+  "/pyproject.toml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -73,7 +73,8 @@ class FakeServer:
                 self.send_response(status)
                 for key, value in headers.items():
                     self.send_header(key, value)
-                self.send_header("Content-Length", str(len(body)))
+                if "Content-Length" not in headers:
+                    self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
 

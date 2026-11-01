@@ -8,6 +8,7 @@ from pathlib import Path
 from odezoo import http
 from odezoo.cache import Cache
 from odezoo.cache import cache_dir as resolve_cache_dir
+from odezoo.errors import OdezooError
 from odezoo.fetch import fetch_bytes, write_output
 from odezoo.registry import load as load_registry
 from odezoo.resolve import choose_version
@@ -70,7 +71,12 @@ def get(
     store = Cache(resolve_cache_dir(cache_dir)) if cache else None
     data, path = fetch_bytes(reg, m, v, cache=store, http=http.client())
     if dest is None:
-        assert path is not None  # the cache, or the checkout, holds it
+        if path is None:
+            assert store is not None
+            raise OdezooError(
+                f"could not keep {m.id} in the cache folder {store.root}; "
+                "fix --cache-dir / ODEZOO_CACHE_DIR, or pass dest"
+            )
         return path
     dest = Path(dest)
     target = dest / f"{m.id}{v.ext}" if dest.is_dir() else dest

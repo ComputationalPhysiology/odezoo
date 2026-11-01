@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import hashlib
 import os
-import shutil
+import re
+import stat
 import sys
 import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
 ENV_VAR = "ODEZOO_CACHE_DIR"
-SUBFOLDERS = ("sha256", "http")  # all odezoo writes; `clear` removes these and nothing else
+# The names odezoo gives cached files and their temporary files; `clear` removes only these.
+ENTRY = re.compile(r"[0-9a-f]{64}\.(cellml|ode)")
+TEMPORARY = re.compile(r"\.[0-9a-f]{64}\.(cellml|ode)\..+\.part")
+BUCKET = re.compile(r"[0-9a-f]{2}")
 
 
 def default_cache_dir(
@@ -43,13 +47,28 @@ def cache_dir(explicit: Path | str | None = None) -> Path:
     return default_cache_dir()
 
 
+def _umask() -> int:
+    current = os.umask(0)
+    os.umask(current)
+    return current
+
+
 def write_atomically(path: Path, data: bytes) -> None:
-    """Write `data` to `path` so that `path` never holds part of it"""
+    """Write `data` to `path` so that `path` never holds part of it
+
+    The file gets the mode a plain write would give it: that of the file it replaces, or else
+    0666 less the umask (mkstemp alone would make every file private to its owner).
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        mode = stat.S_IMODE(path.stat().st_mode)
+    except FileNotFoundError:
+        mode = 0o666 & ~_umask()
     fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".part")
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(data)
+        os.chmod(temporary, mode)
         os.replace(temporary, path)
     except BaseException:
         Path(temporary).unlink(missing_ok=True)
@@ -64,11 +83,14 @@ class Cache:
         return self.root / "sha256" / sha256[:2] / f"{sha256}{ext}"
 
     def read(self, sha256: str, ext: str) -> bytes | None:
-        """The cached bytes, or None; an entry whose hash is wrong is deleted"""
+        """The cached bytes, or None; an entry whose hash is wrong is deleted
+
+        A cache folder that cannot be read counts as empty, so it never stops a fetch.
+        """
         path = self.path_for(sha256, ext)
         try:
             data = path.read_bytes()
-        except FileNotFoundError:
+        except OSError:
             return None
         if hashlib.sha256(data).hexdigest() != sha256:
             path.unlink(missing_ok=True)
@@ -83,15 +105,25 @@ class Cache:
         return path
 
     def clear(self) -> int:
-        """Remove everything odezoo cached; return the number of files removed
+        """Remove every file odezoo cached; return the number of files removed
 
-        Only odezoo's own subfolders are touched, so a --cache-dir that points at a folder with
-        other files in it loses none of them.
+        Only files named the way odezoo names them are removed, then the folders this leaves
+        empty, so a --cache-dir that points at a folder with other files in it loses none of them.
         """
         removed = 0
-        for name in SUBFOLDERS:
-            folder = self.root / name
-            if folder.is_dir():
-                removed += sum(1 for p in folder.rglob("*") if p.is_file())
-                shutil.rmtree(folder)
+        store = self.root / "sha256"
+        if not store.is_dir():
+            return 0
+        for bucket in store.iterdir():
+            if not (bucket.is_dir() and BUCKET.fullmatch(bucket.name)):
+                continue
+            for path in bucket.iterdir():
+                ours = ENTRY.fullmatch(path.name) and path.name.startswith(bucket.name)
+                if path.is_file() and (ours or TEMPORARY.fullmatch(path.name)):
+                    path.unlink()
+                    removed += 1
+            if not any(bucket.iterdir()):
+                bucket.rmdir()
+        if not any(store.iterdir()):
+            store.rmdir()
         return removed

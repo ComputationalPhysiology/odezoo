@@ -1,3 +1,6 @@
+import os
+import stat
+import sys
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -128,3 +131,23 @@ def test_write_output_refuses_then_forces(tmp_path):
     with pytest.raises(OutputExistsError, match="--force"):
         write_output(b"b", t)
     assert write_output(b"b", t, force=True).read_bytes() == b"b"
+
+
+def test_truncated_mirror_falls_back_to_upstream(remote, http_server):
+    http_server.add(MIRROR, b"<?xml", headers={"Content-Length": "500"})
+    http_server.add(UP, CELLML_BYTES)
+    data, _ = fetch(remote)
+    assert data == CELLML_BYTES and paths(http_server) == [MIRROR, UP]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX file modes")
+def test_written_files_follow_the_umask(tmp_path):
+    old = os.umask(0o022)
+    try:
+        t = write_output(b"a", tmp_path / "m.ode")
+        assert stat.S_IMODE(t.stat().st_mode) == 0o644
+        t.chmod(0o640)
+        write_output(b"b", t, force=True)
+        assert stat.S_IMODE(t.stat().st_mode) == 0o640
+    finally:
+        os.umask(old)

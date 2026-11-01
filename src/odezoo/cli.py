@@ -101,7 +101,10 @@ def _fetch(args: argparse.Namespace) -> int:
     output = Path(args.output)
     if output.exists() and not output.is_dir():
         raise OdezooError(f"{output} is not a folder")
-    output.mkdir(parents=True, exist_ok=True)
+    try:
+        output.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise OdezooError(f"cannot use {output} as the output folder ({e})") from None
     from rich.progress import Progress
 
     from odezoo import render
@@ -123,7 +126,7 @@ def _fetch(args: argparse.Namespace) -> int:
                     registry=args.registry,
                     force=args.force,
                 )
-            except OdezooError as e:
+            except (OdezooError, OSError) as e:
                 render.print_error(e, err, prefix=f"{id}: ")
                 failed += 1
             else:
@@ -272,7 +275,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
     try:
         return handler(args)
-    except OdezooError as e:
+    except (OdezooError, OSError) as e:  # OSError: a folder that cannot be read or written
         from odezoo import render
 
         render.print_error(e, render.console(stderr=True))

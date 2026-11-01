@@ -51,7 +51,11 @@ def test_corrupt_entry_is_deleted(tmp_path):
 def test_clear_removes_only_odezoo_files(tmp_path):
     c = Cache(tmp_path)
     c.write(CELLML_SHA, ".cellml", CELLML_BYTES)
-    (tmp_path / "http").mkdir()
-    (tmp_path / "http/r.json").write_text("{}")
+    (tmp_path / "http/myproject").mkdir(parents=True)
+    (tmp_path / "http/myproject/index.html").write_text("someone's site")
+    (tmp_path / "sha256/notes.txt").write_text("mine")
     (tmp_path / "mine.txt").write_text("keep")
-    assert c.clear() == 2 and (tmp_path / "mine.txt").read_text() == "keep"
+    assert c.clear() == 1
+    assert not c.path_for(CELLML_SHA, ".cellml").exists()
+    for kept in ("http/myproject/index.html", "sha256/notes.txt", "mine.txt"):
+        assert (tmp_path / kept).exists(), kept

@@ -99,3 +99,40 @@ def test_fetched_path_is_never_wrapped():
     )
     print_fetched("beeler_reuter_1977", path, Console(file=stream, width=40))
     assert str(path) in stream.getvalue()
+
+
+def test_output_under_a_file_is_a_clean_error(capsys, checkout, tmp_path):
+    (tmp_path / "a_file").write_text("x")
+    args = ["--registry", str(checkout), "fetch", "beeler_reuter_1977"]
+    code, _, err = run(capsys, *args, "-o", str(tmp_path / "a_file/sub"))
+    assert code == 1 and "a_file" in err
+
+
+def test_an_os_error_on_one_id_does_not_stop_the_rest(capsys, checkout, tmp_path, monkeypatch):
+    real_get = odezoo.api.get
+
+    def get(id, **kwargs):
+        if id == "first":
+            raise PermissionError(13, "Permission denied", str(tmp_path / "first.cellml"))
+        return real_get(id, **kwargs)
+
+    monkeypatch.setattr(odezoo.api, "get", get)
+    args = ["--registry", str(checkout), "fetch", "first", "beeler_reuter_1977"]
+    code, _, err = run(capsys, *args, "-o", str(tmp_path))
+    assert code == 1 and "first" in err and "Permission denied" in err
+    assert (tmp_path / "beeler_reuter_1977.cellml").exists()
+
+
+def test_unusable_cache_folder_does_not_stop_a_fetch(capsys, remote_checkout, tmp_path):
+    (tmp_path / "cachefile").write_text("x")
+    args = ["--registry", str(remote_checkout), "--cache-dir", str(tmp_path / "cachefile")]
+    code, _, _ = run(capsys, *args, "fetch", "beeler_reuter_1977", "-o", str(tmp_path / "out"))
+    assert code == 0
+    assert (tmp_path / "out/beeler_reuter_1977.cellml").read_bytes() == CELLML_BYTES
+
+
+def test_other_filesystem_errors_are_clean(capsys, checkout, tmp_path):
+    (tmp_path / "a_file").write_text("x")
+    args = ["--registry", str(checkout), "registry", "build", "-o", str(tmp_path / "a_file/r.json")]
+    code, _, err = run(capsys, *args)
+    assert code == 1 and "a_file" in err

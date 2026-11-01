@@ -6,6 +6,7 @@ odezoo never hammers PMR, GitHub, Zenodo or NCBI, and is not blocked by them.
 
 from __future__ import annotations
 
+import http.client
 import time
 import urllib.error
 import urllib.request
@@ -86,6 +87,9 @@ class Http:
                 raise HttpError(url, None, str(e.reason)) from None
             except (TimeoutError, OSError) as e:
                 raise HttpError(url, None, str(e) or type(e).__name__) from None
+            except (http.client.HTTPException, ValueError) as e:
+                # A body cut short (IncompleteRead), or a URL urllib refuses (InvalidURL).
+                raise HttpError(url, None, f"{type(e).__name__}: {e}") from None
         raise AssertionError("unreachable: the last attempt returns or raises")
 
 

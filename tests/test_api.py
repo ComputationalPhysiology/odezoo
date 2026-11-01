@@ -2,6 +2,7 @@ import pytest
 from helpers import CELLML_BYTES
 
 import odezoo
+from odezoo.errors import OdezooError
 
 
 def test_get_returns_checkout_path(checkout):
@@ -32,3 +33,9 @@ def test_model_and_search(checkout):
     assert odezoo.model("beeler_reuter_1977", registry=checkout).paper.year == 1977
     assert [m.id for m in odezoo.search("beeler", registry=checkout)] == ["beeler_reuter_1977"]
     assert [m.id for m in odezoo.models(registry=checkout)] == ["beeler_reuter_1977"]
+
+
+def test_get_without_dest_needs_a_usable_cache(remote_checkout, tmp_path):
+    (tmp_path / "cachefile").write_text("x")
+    with pytest.raises(OdezooError, match="cache"):
+        odezoo.get("beeler_reuter_1977", cache_dir=tmp_path / "cachefile", registry=remote_checkout)

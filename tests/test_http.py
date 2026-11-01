@@ -90,3 +90,15 @@ def test_refused_connection_is_http_error():
 
 def test_client_is_one_per_process():
     assert client() is client()
+
+
+def test_truncated_body_is_http_error(http_server):
+    url = http_server.add("/x", b"short", headers={"Content-Length": "100"})
+    with pytest.raises(HttpError) as e:
+        Http(default_interval=0).get(url)
+    assert e.value.status is None
+
+
+def test_invalid_url_is_http_error():
+    with pytest.raises(HttpError):
+        Http(default_interval=0).get("http://127.0.0.1:1/a b")

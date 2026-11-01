@@ -15,7 +15,7 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 
-from odezoo.errors import FetchError, OdezooError
+from odezoo.errors import FetchError
 from odezoo.maintain.check import Report
 from odezoo.schema import Model, Paper
 
@@ -118,7 +118,7 @@ def print_fetched(model_id: str, path: Path, out: Console) -> None:
     out.print(Text.assemble((ok, "bold green"), f" {model_id} {arrow} {path}"), soft_wrap=True)
 
 
-def print_error(error: OdezooError, out: Console, *, prefix: str = "") -> None:
+def print_error(error: Exception, out: Console, *, prefix: str = "") -> None:
     _, fail, _ = symbols(out)
     if isinstance(error, FetchError):
         message = f"could not fetch {error.model_id} {error.version_id}"

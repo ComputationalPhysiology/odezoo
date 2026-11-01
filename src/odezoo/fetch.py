@@ -65,7 +65,12 @@ def fetch_bytes(
             attempts.append(Attempt(url, e.reason))
             continue
         if verified(data, url):
-            stored = None if cache is None else cache.write(version.sha256, version.ext, data)
+            stored = None
+            if cache is not None:
+                try:
+                    stored = cache.write(version.sha256, version.ext, data)
+                except OSError:
+                    pass  # an unusable cache folder must not cost the download
             return data, stored
 
     raise FetchError(model.id, version.id, attempts)
