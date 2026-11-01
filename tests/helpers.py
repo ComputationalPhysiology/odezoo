@@ -1,11 +1,16 @@
-"""Shared test helpers: a local HTTP server and, later, model fixtures"""
+"""Shared test helpers: a local HTTP server and model fixtures"""
 
 from __future__ import annotations
 
+import hashlib
 import http.server
 import threading
 from collections.abc import Mapping, Sequence
+from datetime import date
 from pathlib import Path
+from typing import Any
+
+from odezoo.schema import Model, parse_model
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -72,3 +77,57 @@ class FakeServer:
                 pass
 
         return Handler
+
+
+# --- Model fixtures ---------------------------------------------------------------------------
+
+CELLML_BYTES = (
+    b'<?xml version="1.0"?>\n<model xmlns="http://www.cellml.org/cellml/1.0#" name="br"/>\n'
+)
+CELLML_SHA = hashlib.sha256(CELLML_BYTES).hexdigest()
+COMMIT = "cb090c96a2ce627457b14def4910ac39219b8340"
+
+
+def model_dict() -> dict[str, Any]:
+    """The first version of the spec's Beeler–Reuter example, as `model.toml` would parse"""
+    return {
+        "id": "beeler_reuter_1977",
+        "name": "Beeler–Reuter 1977",
+        "categories": ["electrophysiology"],
+        "keywords": ["cardiac", "ventricular myocyte"],
+        "species": "canine",
+        "cell_type": "ventricular myocyte",
+        "reviewed": True,
+        "default_version": "pmr-cb090c9",
+        "paper": {
+            "title": "Reconstruction of the action potential of ventricular myocardial fibres",
+            "authors": ["Beeler GW", "Reuter H"],
+            "journal": "Journal of Physiology",
+            "year": 1977,
+            "doi": "10.1113/jphysiol.1977.sp011853",
+            "pubmed": 874889,
+        },
+        "versions": [
+            {
+                "id": "pmr-cb090c9",
+                "format": "cellml",
+                "sha256": CELLML_SHA,
+                "license": "CC-BY-3.0",
+                "file": "pmr-cb090c9.cellml",
+                "added": date(2026, 11, 1),
+                "source": {
+                    "type": "pmr",
+                    "workspace": "https://models.physiomeproject.org/workspace/beeler_reuter_1977",
+                    "commit": COMMIT,
+                    "path": "beeler_reuter_1977.cellml",
+                    "exposure": "https://models.physiomeproject.org/e/c1",
+                },
+            }
+        ],
+    }
+
+
+def make_model(**top_level_overrides: Any) -> Model:
+    data = model_dict()
+    data.update(top_level_overrides)
+    return parse_model(data, where="test")
