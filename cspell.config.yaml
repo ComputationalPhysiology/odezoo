@@ -38,3 +38,4 @@ words:
   - capsys
   - eutils
   - esummary
+  - localappdata
