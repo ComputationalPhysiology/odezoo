@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from odezoo.errors import VersionNotFound
-from odezoo.schema import Model, Version
+from .errors import VersionNotFound
+from .schema import Model, Version
 
 
 def choose_version(

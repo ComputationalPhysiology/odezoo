@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from odezoo.schema import Model, normalize_keyword
+from .schema import Model, normalize_keyword
 
 
 def _as_set(value: str | Sequence[str] | None, normalize=str.lower) -> set[str] | None:

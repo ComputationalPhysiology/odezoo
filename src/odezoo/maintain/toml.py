@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from odezoo.schema import Model, Version, _version_to_dict, model_to_dict
+from ..schema import Model, Version, _version_to_dict, model_to_dict
 
 
 def _value(key: str, value: Any) -> str:

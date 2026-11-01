@@ -13,8 +13,8 @@ import urllib.request
 from collections.abc import Callable, Mapping
 from urllib.parse import urlsplit
 
-from odezoo import __version__
-from odezoo.errors import OdezooError
+from . import __version__
+from .errors import OdezooError
 
 USER_AGENT = f"odezoo/{__version__} (+https://github.com/ComputationalPhysiology/odezoo)"
 DEFAULT_INTERVAL = 1.0  # seconds between requests to one host

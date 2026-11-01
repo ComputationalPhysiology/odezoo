@@ -9,8 +9,8 @@ except PackageNotFoundError:  # running from a source tree that is not installed
     __version__ = "0+unknown"
 
 # Imported after __version__, which odezoo.http reads.
-from odezoo.api import get, model, models, search  # noqa: E402
-from odezoo.errors import (  # noqa: E402
+from .api import get, model, models, search  # noqa: E402
+from .errors import (  # noqa: E402
     FetchError,
     ModelNotFound,
     OdezooError,
@@ -18,7 +18,7 @@ from odezoo.errors import (  # noqa: E402
     RegistryError,
     VersionNotFound,
 )
-from odezoo.schema import Model, Paper, Source, Version  # noqa: E402
+from .schema import Model, Paper, Source, Version  # noqa: E402
 
 __all__ = [
     "FetchError",

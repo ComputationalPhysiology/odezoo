@@ -15,9 +15,9 @@ from rich.style import Style
 from rich.table import Table
 from rich.text import Text
 
-from odezoo.errors import FetchError
-from odezoo.maintain.check import Report
-from odezoo.schema import Model, Paper
+from .errors import FetchError
+from .maintain.check import Report
+from .schema import Model, Paper
 
 
 def console(*, stderr: bool = False) -> Console:

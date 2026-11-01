@@ -1,3 +1,4 @@
+import ast
 import importlib.metadata
 import socket
 import subprocess
@@ -36,3 +37,15 @@ def test_fake_server_serves_and_records(http_server):
 
 def test_gitattributes_keeps_model_bytes():
     assert "models/** -text" in (REPO / ".gitattributes").read_text().splitlines()
+
+
+def test_package_modules_import_each_other_relatively():
+    absolute = []
+    for path in sorted((REPO / "src/odezoo").rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            names = [a.name for a in node.names] if isinstance(node, ast.Import) else []
+            if isinstance(node, ast.ImportFrom) and node.level == 0:
+                names = [node.module or ""]
+            if any(n == "odezoo" or n.startswith("odezoo.") for n in names):
+                absolute.append(f"{path.relative_to(REPO)}:{node.lineno}")
+    assert absolute == []

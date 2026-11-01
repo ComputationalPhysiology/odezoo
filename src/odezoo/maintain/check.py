@@ -11,10 +11,10 @@ from pathlib import Path
 from types import ModuleType
 from xml.etree import ElementTree
 
-from odezoo.errors import RegistryError
-from odezoo.fetch import sha256_hex
-from odezoo.registry import read_model
-from odezoo.schema import Model
+from ..errors import RegistryError
+from ..fetch import sha256_hex
+from ..registry import read_model
+from ..schema import Model
 
 CELLML_NAMESPACES = (
     "http://www.cellml.org/cellml/1.0#",

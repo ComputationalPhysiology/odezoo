@@ -5,15 +5,15 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from odezoo import http
-from odezoo.cache import Cache
-from odezoo.cache import cache_dir as resolve_cache_dir
-from odezoo.errors import OdezooError
-from odezoo.fetch import fetch_bytes, write_output
-from odezoo.registry import load as load_registry
-from odezoo.resolve import choose_version
-from odezoo.schema import Model
-from odezoo.search import search as search_models
+from . import http
+from .cache import Cache
+from .cache import cache_dir as resolve_cache_dir
+from .errors import OdezooError
+from .fetch import fetch_bytes, write_output
+from .registry import load as load_registry
+from .resolve import choose_version
+from .schema import Model
+from .search import search as search_models
 
 
 def models(*, registry: Path | str | None = None) -> list[Model]:

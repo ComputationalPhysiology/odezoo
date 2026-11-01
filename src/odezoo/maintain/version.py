@@ -6,11 +6,11 @@ import re
 from datetime import date
 from pathlib import Path
 
-from odezoo.errors import RegistryError
-from odezoo.fetch import sha256_hex
-from odezoo.maintain.toml import version_block
-from odezoo.registry import load_checkout, read_model
-from odezoo.schema import FORMATS, Model, Version
+from ..errors import RegistryError
+from ..fetch import sha256_hex
+from ..registry import load_checkout, read_model
+from ..schema import FORMATS, Model, Version
+from .toml import version_block
 
 OWN_VERSION = re.compile(r"^v(\d+)$")
 

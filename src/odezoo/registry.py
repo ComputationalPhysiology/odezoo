@@ -13,8 +13,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from odezoo.errors import ModelNotFound, RegistryError
-from odezoo.schema import GIT_COMMIT, Model, model_to_dict, parse_model
+from .errors import ModelNotFound, RegistryError
+from .schema import GIT_COMMIT, Model, model_to_dict, parse_model
 
 MIRROR_BASE = "https://raw.githubusercontent.com/ComputationalPhysiology/odezoo"
 SCHEMA_VERSION = 1

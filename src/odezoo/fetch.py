@@ -10,11 +10,11 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from odezoo.cache import Cache, write_atomically
-from odezoo.errors import Attempt, FetchError, OdezooError, OutputExistsError
-from odezoo.http import Http, HttpError
-from odezoo.registry import Registry
-from odezoo.schema import Model, Version
+from .cache import Cache, write_atomically
+from .errors import Attempt, FetchError, OdezooError, OutputExistsError
+from .http import Http, HttpError
+from .registry import Registry
+from .schema import Model, Version
 
 
 def sha256_hex(data: bytes) -> str:

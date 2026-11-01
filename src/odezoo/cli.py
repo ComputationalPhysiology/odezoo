@@ -16,12 +16,12 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from odezoo import __version__, api
-from odezoo.cache import Cache, cache_dir
-from odezoo.errors import OdezooError, RegistryError
-from odezoo.registry import ENV_VAR as REGISTRY_ENV_VAR
-from odezoo.registry import build, resolve_commit
-from odezoo.schema import CATEGORIES, FORMATS, model_to_dict
+from . import __version__, api
+from .cache import Cache, cache_dir
+from .errors import OdezooError, RegistryError
+from .registry import ENV_VAR as REGISTRY_ENV_VAR
+from .registry import build, resolve_commit
+from .schema import CATEGORIES, FORMATS, model_to_dict
 
 Handler = Callable[[argparse.Namespace], int]
 
@@ -74,7 +74,7 @@ def _search(args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps([model_to_dict(m) for m in found], indent=2))
         return 0
-    from odezoo import render
+    from . import render
 
     if not found:
         render.console(stderr=True).print("No models match.")
@@ -88,7 +88,7 @@ def _info(args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps(model_to_dict(model), indent=2))
         return 0
-    from odezoo import render
+    from . import render
 
     render.print_model(model, render.console())
     return 0
@@ -107,7 +107,7 @@ def _fetch(args: argparse.Namespace) -> int:
         raise OdezooError(f"cannot use {output} as the output folder ({e})") from None
     from rich.progress import Progress
 
-    from odezoo import render
+    from . import render
 
     out, err = render.console(), render.console(stderr=True)
     failed = 0
@@ -160,8 +160,8 @@ def _registry_root(args: argparse.Namespace) -> Path:
 
 
 def _registry_check(args: argparse.Namespace) -> int:
-    from odezoo import render
-    from odezoo.maintain.check import check
+    from . import render
+    from .maintain.check import check
 
     report = check(_registry_root(args), args.ids or None)
     render.print_report(report, render.console())
@@ -179,7 +179,7 @@ def _registry_build(args: argparse.Namespace) -> int:
 
 
 def _registry_add_version(args: argparse.Namespace) -> int:
-    from odezoo.maintain.version import add_version
+    from .maintain.version import add_version
 
     version = add_version(
         _registry_root(args),
@@ -276,7 +276,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return handler(args)
     except (OdezooError, OSError) as e:  # OSError: a folder that cannot be read or written
-        from odezoo import render
+        from . import render
 
         render.print_error(e, render.console(stderr=True))
         return 1

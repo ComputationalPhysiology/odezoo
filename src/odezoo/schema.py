@@ -13,7 +13,7 @@ from datetime import date, datetime
 from typing import Any
 from urllib.parse import quote
 
-from odezoo.errors import RegistryError, VersionNotFound
+from .errors import RegistryError, VersionNotFound
 
 # PMR's top-level categories, as slugs.
 CATEGORIES: tuple[str, ...] = (
