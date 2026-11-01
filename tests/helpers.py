@@ -10,6 +10,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from odezoo.maintain.toml import dump_model
 from odezoo.schema import Model, parse_model
 
 REPO = Path(__file__).resolve().parents[1]
@@ -131,3 +132,17 @@ def make_model(**top_level_overrides: Any) -> Model:
     data = model_dict()
     data.update(top_level_overrides)
     return parse_model(data, where="test")
+
+
+def write_checkout(root: Path, models: Sequence[tuple[Model, Mapping[str, bytes]]]) -> Path:
+    """A registry checkout in `root`: one folder per model with its `model.toml` and files"""
+    (root / "models").mkdir(parents=True, exist_ok=True)
+    (root / "LICENSES").mkdir(exist_ok=True)
+    (root / "LICENSES/CC-BY-3.0.txt").write_bytes(b"licence text")
+    for model, files in models:
+        folder = root / "models" / model.id
+        folder.mkdir()
+        (folder / "model.toml").write_text(dump_model(model), encoding="utf-8")
+        for name, data in files.items():
+            (folder / name).write_bytes(data)
+    return root

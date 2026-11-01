@@ -1,7 +1,8 @@
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
-from helpers import FakeServer
+from helpers import CELLML_BYTES, FakeServer, make_model, write_checkout
 
 LOCALHOST = ["127.0.0.1", "::1"]
 
@@ -23,3 +24,9 @@ def http_server() -> Iterator[FakeServer]:
     server.start()
     yield server
     server.stop()
+
+
+@pytest.fixture
+def checkout(tmp_path: Path) -> Path:
+    """A registry checkout holding the Beeler–Reuter test model and its CellML file"""
+    return write_checkout(tmp_path / "reg", [(make_model(), {"pmr-cb090c9.cellml": CELLML_BYTES})])
