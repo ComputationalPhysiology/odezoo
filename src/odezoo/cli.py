@@ -10,9 +10,12 @@ import argparse
 import json
 import sys
 from collections.abc import Callable, Sequence
+from contextlib import nullcontext
+from pathlib import Path
 from typing import Any
 
 from odezoo import __version__, api
+from odezoo.cache import Cache, cache_dir
 from odezoo.errors import OdezooError
 from odezoo.schema import CATEGORIES, FORMATS, model_to_dict
 
@@ -87,6 +90,69 @@ def _info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _fetch(args: argparse.Namespace) -> int:
+    ids = list(dict.fromkeys(args.ids))
+    if args.version is not None and len(ids) > 1:
+        args.command_parser.error("--version can only be used with one model id")
+    output = Path(args.output)
+    if output.exists() and not output.is_dir():
+        raise OdezooError(f"{output} is not a folder")
+    output.mkdir(parents=True, exist_ok=True)
+    from rich.progress import Progress
+
+    from odezoo import render
+
+    out, err = render.console(), render.console(stderr=True)
+    failed = 0
+    progress = Progress(console=out, transient=True) if len(ids) > 1 and out.is_terminal else None
+    with progress or nullcontext():
+        task = progress.add_task("Fetching", total=len(ids)) if progress else None
+        for id in ids:
+            try:
+                path = api.get(
+                    id,
+                    version=args.version,
+                    format=args.format,
+                    dest=output,
+                    cache=not args.no_cache,
+                    cache_dir=args.cache_dir,
+                    registry=args.registry,
+                    force=args.force,
+                )
+            except OdezooError as e:
+                render.print_error(e, err, prefix=f"{id}: ")
+                failed += 1
+            else:
+                render.print_fetched(id, path, out)
+            if progress is not None and task is not None:
+                progress.advance(task)
+    return 1 if failed else 0
+
+
+def _cache_dir(args: argparse.Namespace) -> int:
+    print(cache_dir(args.cache_dir))
+    return 0
+
+
+def _cache_clear(args: argparse.Namespace) -> int:
+    directory = cache_dir(args.cache_dir)
+    removed = Cache(directory).clear()
+    print(f"Removed {removed} file{'' if removed == 1 else 's'} from {directory}")
+    return 0
+
+
+def _group(commands: Any, name: str, help: str) -> tuple[argparse.ArgumentParser, Any]:
+    """A command that only holds subcommands; on its own it prints its help (exit 2)"""
+    parser = commands.add_parser(name, help=help, description=help, **PARSER_OPTIONS)
+
+    def usage(args: argparse.Namespace) -> int:
+        parser.print_help(sys.stderr)
+        return 2
+
+    parser.set_defaults(handler=usage)
+    return parser, parser.add_subparsers(metavar="COMMAND")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="odezoo",
@@ -115,6 +181,23 @@ def build_parser() -> argparse.ArgumentParser:
     info = _command(commands, "info", "show a model's paper, versions and sources", _info)
     info.add_argument("id")
     info.add_argument("--json", action="store_true", help="print the model as JSON")
+
+    fetch = _command(commands, "fetch", "download models' files, verified by sha256", _fetch)
+    fetch.set_defaults(command_parser=fetch)
+    fetch.add_argument("ids", nargs="+", metavar="ID")
+    fetch.add_argument("--version", help="the version to fetch (one model id only)")
+    fetch.add_argument("--format", choices=list(FORMATS), help="the newest version in FORMAT")
+    fetch.add_argument(
+        "-o", "--output", default=".", metavar="DIR", help="folder to write <id>.<ext> into"
+    )
+    fetch.add_argument("--force", action="store_true", help="overwrite a different file")
+    fetch.add_argument(
+        "--no-cache", action="store_true", help="download again; do not read or write the cache"
+    )
+
+    _, cache = _group(commands, "cache", "show or empty the download cache")
+    _command(cache, "dir", "print the cache folder", _cache_dir)
+    _command(cache, "clear", "delete everything odezoo cached", _cache_clear)
     return parser
 
 

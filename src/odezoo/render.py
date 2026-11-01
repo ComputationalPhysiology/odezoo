@@ -8,6 +8,7 @@ in a note or a path is printed as it is.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 
 from rich.console import Console
 from rich.style import Style
@@ -108,6 +109,11 @@ def print_model(model: Model, out: Console) -> None:
         cells.append(_link(v.source.page_url()) if v.source else "this repository")
         versions.add_row(*cells)
     out.print(versions)
+
+
+def print_fetched(model_id: str, path: Path, out: Console) -> None:
+    ok, _, arrow = symbols(out)
+    out.print(Text.assemble((ok, "bold green"), f" {model_id} {arrow} {path}"))
 
 
 def print_error(error: OdezooError, out: Console, *, prefix: str = "") -> None:
