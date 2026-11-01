@@ -23,3 +23,7 @@ words:
   - reuter
   - tworld
   - pmrs
+  - delenv
+  - setenv
+  - setattr
+  - setitem
