@@ -21,7 +21,7 @@ def test_import_does_not_load_rich():
     assert out.stdout.strip() == "False"
 
 
-@pytest.mark.filterwarnings("ignore::pytest_socket.SocketBlockedWarning")
+@pytest.mark.filterwarnings("ignore:A test tried to use socket:UserWarning")
 def test_outside_network_is_blocked():
     with pytest.raises(SocketConnectBlockedError):
         socket.create_connection(("192.0.2.1", 80), timeout=1)
