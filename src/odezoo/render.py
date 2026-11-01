@@ -16,6 +16,7 @@ from rich.table import Table
 from rich.text import Text
 
 from odezoo.errors import FetchError, OdezooError
+from odezoo.maintain.check import Report
 from odezoo.schema import Model, Paper
 
 
@@ -128,3 +129,14 @@ def print_error(error: OdezooError, out: Console, *, prefix: str = "") -> None:
         for attempt in error.attempts:
             table.add_row(Text(attempt.source), Text(attempt.reason))
         out.print(table)
+
+
+def print_report(report: Report, out: Console) -> None:
+    for error in report.errors:
+        out.print(Text(error, style="red"))
+    for warning in report.warnings:
+        out.print(Text(warning, style="yellow"))
+    out.print(
+        f"{report.checked} models checked, {len(report.errors)} errors, "
+        f"{len(report.warnings)} warnings"
+    )

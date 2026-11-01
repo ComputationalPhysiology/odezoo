@@ -6,6 +6,7 @@ import hashlib
 import http.server
 import threading
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -157,3 +158,9 @@ def run(capsys: Any, *argv: str) -> tuple[int, str, str]:
     code = main(list(argv))
     out, err = capsys.readouterr()
     return code, out, err
+
+
+def replace_version(model: Model, **changes: Any) -> Model:
+    """`model` with `dataclasses.replace(**changes)` applied to its first version"""
+    first = replace(model.versions[0], **changes)
+    return replace(model, versions=(first, *model.versions[1:]))

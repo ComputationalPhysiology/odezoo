@@ -8,15 +8,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Callable, Sequence
 from contextlib import nullcontext
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 from odezoo import __version__, api
 from odezoo.cache import Cache, cache_dir
-from odezoo.errors import OdezooError
+from odezoo.errors import OdezooError, RegistryError
+from odezoo.registry import ENV_VAR as REGISTRY_ENV_VAR
+from odezoo.registry import build, resolve_commit
 from odezoo.schema import CATEGORIES, FORMATS, model_to_dict
 
 Handler = Callable[[argparse.Namespace], int]
@@ -141,6 +145,36 @@ def _cache_clear(args: argparse.Namespace) -> int:
     return 0
 
 
+def _registry_root(args: argparse.Namespace) -> Path:
+    """The checkout the maintainer commands work on: --registry, $ODEZOO_REGISTRY, or here"""
+    root = Path(args.registry or os.environ.get(REGISTRY_ENV_VAR) or ".")
+    if not (root / "models").is_dir():
+        raise RegistryError(
+            f"{root.resolve()} has no models/ folder; "
+            "run this in a registry checkout or pass --registry PATH"
+        )
+    return root
+
+
+def _registry_check(args: argparse.Namespace) -> int:
+    from odezoo import render
+    from odezoo.maintain.check import check
+
+    report = check(_registry_root(args), args.ids or None)
+    render.print_report(report, render.console())
+    return 0 if report.ok else 1
+
+
+def _registry_build(args: argparse.Namespace) -> int:
+    root = _registry_root(args)
+    commit = os.environ.get("ODEZOO_REGISTRY_COMMIT") or resolve_commit(root)
+    data = build(root, commit=commit, built=date.today())
+    output = Path(args.output)
+    output.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(output)
+    return 0
+
+
 def _group(commands: Any, name: str, help: str) -> tuple[argparse.ArgumentParser, Any]:
     """A command that only holds subcommands; on its own it prints its help (exit 2)"""
     parser = commands.add_parser(name, help=help, description=help, **PARSER_OPTIONS)
@@ -198,6 +232,12 @@ def build_parser() -> argparse.ArgumentParser:
     _, cache = _group(commands, "cache", "show or empty the download cache")
     _command(cache, "dir", "print the cache folder", _cache_dir)
     _command(cache, "clear", "delete everything odezoo cached", _cache_clear)
+
+    _, registry = _group(commands, "registry", "maintain a registry checkout")
+    check = _command(registry, "check", "check models and their files", _registry_check)
+    check.add_argument("ids", nargs="*", metavar="ID", help="only these models")
+    build_command = _command(registry, "build", "write registry.json", _registry_build)
+    build_command.add_argument("-o", "--output", default="registry.json", metavar="PATH")
     return parser
 
 

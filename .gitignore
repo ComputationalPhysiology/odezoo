@@ -6,3 +6,4 @@ dist/
 _build/
 .venv/
 src/odezoo/registry.json
+.DS_Store
