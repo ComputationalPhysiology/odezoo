@@ -148,3 +148,12 @@ def write_checkout(root: Path, models: Sequence[tuple[Model, Mapping[str, bytes]
         for name, data in files.items():
             (folder / name).write_bytes(data)
     return root
+
+
+def run(capsys: Any, *argv: str) -> tuple[int, str, str]:
+    """Run the command line with `argv`; return the exit code, stdout and stderr"""
+    from odezoo.cli import main
+
+    code = main(list(argv))
+    out, err = capsys.readouterr()
+    return code, out, err

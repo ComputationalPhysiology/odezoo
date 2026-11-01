@@ -24,6 +24,15 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 
 @pytest.fixture(autouse=True)
+def isolated_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Plain, wide output, and no test touches the real cache or a registry set by the user"""
+    monkeypatch.setenv("COLUMNS", "200")
+    monkeypatch.delenv("FORCE_COLOR", raising=False)
+    monkeypatch.delenv("ODEZOO_REGISTRY", raising=False)
+    monkeypatch.setenv("ODEZOO_CACHE_DIR", str(tmp_path / "user-cache"))
+
+
+@pytest.fixture(autouse=True)
 def fast_http(monkeypatch: pytest.MonkeyPatch) -> None:
     """The process-wide client, without request spacing: tests talk to one local server"""
     monkeypatch.setattr(odezoo.http, "_client", Http(default_interval=0.0, host_intervals={}))
