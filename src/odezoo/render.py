@@ -7,6 +7,8 @@ in a note or a path is printed as it is.
 
 from __future__ import annotations
 
+import os
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -89,8 +91,11 @@ def _citation(paper: Paper) -> str:
     return f"{', '.join(paper.authors)} ({paper.year}). {paper.title}. {paper.journal}."
 
 
-def print_models(models: Sequence[Model], out: Console) -> None:
+def print_models(models: Sequence[Model], out: Console, *, pager: bool = True) -> None:
     """Print models as a table of id, name, year, formats and categories
+
+    On a terminal, a table taller than the screen is shown in the system pager (`$PAGER`, else
+    `less` or `more`), as git does.
 
     Parameters
     ----------
@@ -98,6 +103,8 @@ def print_models(models: Sequence[Model], out: Console) -> None:
         The models, in the order to print them
     out : Console
         Where to print
+    pager : bool, optional
+        Whether a table taller than the terminal may be shown in the pager, by default True
     """
     table = Table()
     table.add_column("ID", no_wrap=True, style="bold cyan")
@@ -113,6 +120,14 @@ def print_models(models: Sequence[Model], out: Console) -> None:
             ", ".join(m.formats),
             ", ".join(m.categories),
         )
+    if pager and out.is_terminal and len(out.render_lines(table, pad=False)) >= out.height:
+        # For less, as git sets it: keep colours (R), quit if it fits (F), leave the table on
+        # the screen (X). Python 3.13 and later pass less options of their own, with -R.
+        os.environ.setdefault("LESS", "FRX")
+        # Windows' pager, more, would print colour codes as text.
+        with out.pager(styles=sys.platform != "win32"):
+            out.print(table)
+        return
     out.print(table)
 
 

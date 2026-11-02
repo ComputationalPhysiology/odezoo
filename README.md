@@ -18,6 +18,7 @@ python3 -m pip install git+https://github.com/ComputationalPhysiology/odezoo
 ## Quick start
 
 ```
+odezoo list                                    # every model; takes the same filters as search
 odezoo search --category electrophysiology     # find models; also by text, --keyword, --species
 odezoo info beeler_reuter_1977                 # paper, DOI, versions, licences, sources
 odezoo fetch beeler_reuter_1977 -o models/     # writes models/beeler_reuter_1977.cellml
@@ -25,7 +26,8 @@ odezoo fetch beeler_reuter_1977 -o models/     # writes models/beeler_reuter_197
 
 `odezoo fetch` takes several ids, so `odezoo fetch $(odezoo search --format cellml --ids)`
 fetches every CellML model. `--format` picks the newest version in a format, `--version` a given
-version, and `--force` overwrites a different file that is already there.
+version, and `--force` overwrites a different file that is already there. A table of models
+taller than the terminal opens in your pager (`$PAGER`, else `less`); `--no-pager` turns that off.
 
 Every file is checked against the sha256 in the registry. It is taken from the cache if it is
 there, otherwise from this repository's copy on GitHub, otherwise from where its authors keep it

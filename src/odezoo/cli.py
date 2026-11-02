@@ -85,7 +85,7 @@ def _command(commands: Any, name: str, help: str, handler: Handler) -> argparse.
 
 
 def _search(args: argparse.Namespace) -> int:
-    """Run `odezoo search`: print the matching models as a table, as ids, or as JSON
+    """Run `odezoo search` or `odezoo list`: print the matching models as a table, ids or JSON
 
     Parameters
     ----------
@@ -118,7 +118,7 @@ def _search(args: argparse.Namespace) -> int:
     if not found:
         render.console(stderr=True).print("No models match.")
         return 0
-    render.print_models(found, render.console())
+    render.print_models(found, render.console(), pager=not args.no_pager)
     return 0
 
 
@@ -342,6 +342,31 @@ def _registry_add_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def _filters(parser: argparse.ArgumentParser) -> None:
+    """Add the filters and output options that `list` and `search` share
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        The command's parser
+    """
+    parser.add_argument(
+        "--category", action="append", choices=CATEGORIES, help="repeat for any of several"
+    )
+    parser.add_argument("--keyword", action="append", help="repeat for any of several")
+    parser.add_argument("--species", action="append", help="repeat for any of several")
+    parser.add_argument("--format", choices=list(FORMATS))
+    reviewed = parser.add_mutually_exclusive_group()
+    reviewed.add_argument("--reviewed", dest="reviewed", action="store_const", const=True)
+    reviewed.add_argument("--unreviewed", dest="reviewed", action="store_const", const=False)
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument("--ids", action="store_true", help="print only the ids, one per line")
+    output.add_argument("--json", action="store_true", help="print the models as JSON")
+    parser.add_argument(
+        "--no-pager", action="store_true", help="print a long table instead of paging it"
+    )
+
+
 def _group(commands: Any, name: str, help: str) -> tuple[argparse.ArgumentParser, Any]:
     """Add a command that only holds subcommands; on its own it prints its help (exit 2)
 
@@ -392,26 +417,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="odezoo",
         description="Search the odezoo registry of ODE models and fetch their files.",
+        epilog="New here? Run `odezoo list` to see every model.",
         **PARSER_OPTIONS,
     )
     parser.add_argument("--version", action="version", version=f"odezoo {__version__}")
     _global_options(parser, suppress=False)
     commands = parser.add_subparsers(dest="command", metavar="COMMAND")
 
-    search = _command(commands, "search", "find models by text and filters", _search)
-    search.add_argument("text", nargs="*", help="words that must all occur in a model's details")
-    search.add_argument(
-        "--category", action="append", choices=CATEGORIES, help="repeat for any of several"
+    listing = _command(
+        commands, "list", "list every model, or those that pass the filters", _search
     )
-    search.add_argument("--keyword", action="append", help="repeat for any of several")
-    search.add_argument("--species", action="append", help="repeat for any of several")
-    search.add_argument("--format", choices=list(FORMATS))
-    reviewed = search.add_mutually_exclusive_group()
-    reviewed.add_argument("--reviewed", dest="reviewed", action="store_const", const=True)
-    reviewed.add_argument("--unreviewed", dest="reviewed", action="store_const", const=False)
-    output = search.add_mutually_exclusive_group()
-    output.add_argument("--ids", action="store_true", help="print only the ids, one per line")
-    output.add_argument("--json", action="store_true", help="print the models as JSON")
+    listing.set_defaults(text=[])
+    _filters(listing)
+    search = _command(
+        commands, "search", "find models by text and filters (odezoo list shows them all)", _search
+    )
+    search.add_argument("text", nargs="*", help="words that must all occur in a model's details")
+    _filters(search)
 
     info = _command(commands, "info", "show a model's paper, versions and sources", _info)
     info.add_argument("id")
