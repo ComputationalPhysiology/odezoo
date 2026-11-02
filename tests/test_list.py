@@ -103,8 +103,10 @@ def test_output_that_is_not_a_terminal_is_never_paged(shown):
     assert shown == [] and "beeler_reuter_1977" in out.file.getvalue()
 
 
-def test_paged_table_keeps_its_colours(shown):
-    print_models([make_model()], terminal(height=3))
+def test_paged_table_keeps_its_colours(shown, monkeypatch):
+    out = terminal(height=3)
+    monkeypatch.setattr(sys, "platform", "linux")  # anywhere but Windows (next test)
+    print_models([make_model()], out)
     assert "\x1b[" in shown[0]
 
 
