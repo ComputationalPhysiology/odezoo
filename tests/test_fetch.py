@@ -115,6 +115,16 @@ def test_checkout_file_with_wrong_hash_falls_through(http_server, tmp_path):
     assert data == CELLML_BYTES and paths(http_server) == [UP]
 
 
+def test_unreadable_checkout_file_falls_through(http_server, tmp_path):
+    model = with_source(http_server.add(UP, CELLML_BYTES))
+    root = write_checkout(tmp_path, [(model, {})])
+    (root / "models/beeler_reuter_1977/pmr-cb090c9.cellml").mkdir()  # reading it is an OSError
+    reg = load_checkout(root)
+    m = reg.get(model.id)
+    data, _ = fetch_bytes(reg, m, m.versions[0], cache=None, http=Http(default_interval=0))
+    assert data == CELLML_BYTES and paths(http_server) == [UP]
+
+
 def test_write_output_creates_folders_and_keeps_bytes(tmp_path):
     t = write_output(b"a\r\nb\n", tmp_path / "new/dir/m.cellml")
     assert t.read_bytes() == b"a\r\nb\n"

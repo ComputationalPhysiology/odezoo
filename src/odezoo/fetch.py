@@ -115,6 +115,8 @@ def fetch_bytes(
             data = path.read_bytes()
         except FileNotFoundError:
             attempts.append(Attempt(str(path), "not found"))
+        except OSError as e:
+            attempts.append(Attempt(str(path), f"cannot be read ({e.strerror or e})"))
         else:
             if verified(data, str(path)):
                 return data, path

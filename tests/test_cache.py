@@ -71,3 +71,16 @@ def test_writing_leaves_the_umask_alone(monkeypatch, tmp_path):
     monkeypatch.setattr(os, "umask", set_umask)
     write_atomically(tmp_path / "new.cellml", b"x")
     assert (tmp_path / "new.cellml").read_bytes() == b"x"
+
+
+def test_corrupt_entry_that_cannot_be_deleted_is_a_miss(monkeypatch, tmp_path):
+    c = Cache(tmp_path)
+    p = c.path_for(CELLML_SHA, ".cellml")
+    p.parent.mkdir(parents=True)
+    p.write_bytes(b"wrong")
+
+    def refuse(self: Path, missing_ok: bool = False) -> None:
+        raise PermissionError(f"read-only: {self}")
+
+    monkeypatch.setattr(Path, "unlink", refuse)
+    assert c.read(CELLML_SHA, ".cellml") is None

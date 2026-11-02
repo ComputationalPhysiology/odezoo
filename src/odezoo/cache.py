@@ -144,7 +144,8 @@ class Cache:
     def read(self, sha256: str, ext: str) -> bytes | None:
         """Return the cached bytes, or None; an entry whose hash is wrong is deleted
 
-        A cache folder that cannot be read counts as empty, so it never stops a fetch.
+        A cache folder that cannot be read, or a wrong entry that cannot be deleted, counts as
+        a miss, so the cache never stops a fetch.
 
         Parameters
         ----------
@@ -164,7 +165,10 @@ class Cache:
         except OSError:
             return None
         if hashlib.sha256(data).hexdigest() != sha256:
-            path.unlink(missing_ok=True)
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                pass  # a read-only cache: the entry stays, and is never used
             return None
         return data
 
