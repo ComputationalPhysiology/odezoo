@@ -1,7 +1,9 @@
+import io
 import json
+import sys
 
 import pytest
-from helpers import run
+from helpers import CELLML_BYTES, make_model, run, write_checkout
 
 from odezoo.cli import main
 
@@ -71,3 +73,15 @@ def test_info_json(capsys, checkout):
 def test_info_unknown_suggests(capsys, checkout):
     code, _, err = run(capsys, "--registry", str(checkout), "info", "beeler_reuter_1978")
     assert code == 1 and "did you mean" in err and "beeler_reuter_1977" in err
+
+
+@pytest.mark.parametrize("command", [["search"], ["info", "beeler_reuter_1977"]])
+def test_text_a_windows_console_cannot_encode_is_replaced(monkeypatch, tmp_path, command):
+    # A piped Windows console is often cp1252, which has no Greek letters.
+    model = make_model(name="Beeler–Reuter 1977 (α-gate)")
+    root = write_checkout(tmp_path, [(model, {"pmr-cb090c9.cellml": CELLML_BYTES})])
+    buffer = io.BytesIO()
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(buffer, encoding="cp1252"))
+    assert main(["--registry", str(root), *command]) == 0
+    sys.stdout.flush()
+    assert b"(?-gate)" in buffer.getvalue()

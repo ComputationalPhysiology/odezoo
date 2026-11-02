@@ -7,6 +7,7 @@ by the handlers that print with rich.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import sys
@@ -448,6 +449,22 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _replace_unprintable(*streams: object) -> None:
+    """Make text streams print `?` for characters their encoding lacks, instead of failing
+
+    A Windows console, or output piped from one, is often cp1252, and model names, titles and
+    authors from PMR can hold Greek letters and other characters it cannot encode.
+
+    Parameters
+    ----------
+    *streams : object
+        The streams, such as `sys.stdout`; those that are not text files are left alone
+    """
+    for stream in streams:
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(errors="replace")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the `odezoo` command line
 
@@ -465,6 +482,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         The exit code: 0 on success, 1 on an error, 2 when a command is missing, and 130 when
         interrupted. A malformed command line exits with 2 from argparse itself.
     """
+    _replace_unprintable(sys.stdout, sys.stderr)
     parser = build_parser()
     args = parser.parse_args(argv)
     handler: Handler | None = getattr(args, "handler", None)
