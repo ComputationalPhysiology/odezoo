@@ -23,6 +23,7 @@ def test_version_block_appends_a_version():
         m.versions[0],
         id="v1",
         format="ode",
+        sha256="0" * 64,
         file="v1.ode",
         source=None,
         derived_from="pmr-cb090c9",

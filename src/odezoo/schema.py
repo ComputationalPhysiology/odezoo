@@ -67,6 +67,12 @@ VERSION_ID = re.compile(r"^[a-z0-9][a-z0-9.-]*$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 GIT_COMMIT = re.compile(r"^[0-9a-f]{40}$")
 GITHUB_REPO = re.compile(r"^[^/\s]+/[^/\s]+$")
+# The characters of an SPDX licence id, such as CC-BY-4.0, GPL-2.0+ or LicenseRef-PMR.
+LICENSE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+-]*$")
+# The licence ids odezoo knows, by their lowercase form, to catch them written in another case.
+KNOWN_LICENSES: dict[str, str] = {id.lower(): id for id in (*MIRROR_LICENSES, "unknown")}
+DOI = re.compile(r"^10\.\d{4,9}/\S+$")
+ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # For each source type: the fields it requires, and the ones it may have.
 SOURCE_FIELDS: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
@@ -645,6 +651,9 @@ class _Fields:
             raise self.error(key, "must be a date (YYYY-MM-DD), not a date and time")
         if isinstance(value, date):
             return value
+        # fromisoformat also reads forms such as 20261101 and 2026-W44-1.
+        if not ISO_DATE.fullmatch(value):
+            raise self.error(key, "must be a date (YYYY-MM-DD)")
         try:
             return date.fromisoformat(value)
         except ValueError:
@@ -688,6 +697,8 @@ def _paper(f: _Fields, *, with_note: bool) -> Paper:
     )
     if paper.doi is None and paper.pubmed is None:
         raise f.error("", "needs a doi or a pubmed id")
+    if paper.doi is not None and not DOI.fullmatch(paper.doi):
+        raise f.error("doi", f"{paper.doi!r} must be a bare DOI, 10.<number>/<suffix>")
     return paper
 
 
@@ -720,9 +731,9 @@ def _source(f: _Fields) -> Source:
         values[key] = f.integer(key, required=True) if key == "record" else f.string(key, True)
     for key in optional:
         values[key] = f.string(key)
-    if "commit" in values and not GIT_COMMIT.match(values["commit"]):
+    if "commit" in values and not GIT_COMMIT.fullmatch(values["commit"]):
         raise f.error("commit", "must be a full commit id: 40 lowercase hex characters")
-    if type == "github" and not GITHUB_REPO.match(values["repo"]):
+    if type == "github" and not GITHUB_REPO.fullmatch(values["repo"]):
         raise f.error("repo", "must be owner/name")
     for key in ("workspace", "exposure", "url"):
         if values.get(key) and not values[key].startswith(("http://", "https://")):
@@ -751,15 +762,20 @@ def _version(f: _Fields) -> Version:
     """
     f.only(VERSION_FIELDS)
     id = f.required_string("id")
-    if not VERSION_ID.match(id):
+    if not VERSION_ID.fullmatch(id):
         raise f.error("id", f"{id!r} must match {VERSION_ID.pattern}")
     format = f.required_string("format")
     if format not in FORMATS:
         raise f.error("format", f"must be one of {', '.join(FORMATS)}, not {format!r}")
     sha256 = f.required_string("sha256")
-    if not SHA256.match(sha256):
+    if not SHA256.fullmatch(sha256):
         raise f.error("sha256", "must be 64 lowercase hex characters")
     license = f.required_string("license")
+    known = KNOWN_LICENSES.get(license.lower(), license)
+    if license != known:
+        raise f.error("license", f"write {license!r} as {known!r}")
+    if not LICENSE_ID.fullmatch(license):
+        raise f.error("license", f"{license!r} must be an SPDX id, such as CC-BY-4.0, or unknown")
     file = f.string("file")
     if file is not None and file != f"{id}{FORMATS[format]}":
         raise f.error("file", f"must be {id}{FORMATS[format]}, the version id and the extension")
@@ -809,10 +825,10 @@ def parse_model(data: Mapping[str, Any], *, where: str) -> Model:
     f.only(MODEL_FIELDS)
 
     id = f.required_string("id")
-    if not MODEL_ID.match(id):
+    if not MODEL_ID.fullmatch(id):
         raise f.error("id", f"{id!r} must match {MODEL_ID.pattern}")
     family = f.string("family")
-    if family is not None and not MODEL_ID.match(family):
+    if family is not None and not MODEL_ID.fullmatch(family):
         raise f.error("family", f"{family!r} must match {MODEL_ID.pattern}")
 
     categories = f.strings("categories", required=True)
@@ -843,9 +859,13 @@ def parse_model(data: Mapping[str, Any], *, where: str) -> Model:
         raise f.error("versions", "needs at least one version")
     versions = tuple(_version(t) for t in version_tables)
     ids = [v.id for v in versions]
+    hashes = [v.sha256 for v in versions]
     for i, v in enumerate(versions):
         if ids.index(v.id) != i:
             raise f.error(f"versions[{i}].id", f"version id {v.id!r} is used twice")
+        if hashes.index(v.sha256) != i:
+            same = versions[hashes.index(v.sha256)].id
+            raise f.error(f"versions[{i}].sha256", f"is the same file as version {same}")
         if v.derived_from is not None and (v.derived_from == v.id or v.derived_from not in ids):
             raise f.error(
                 f"versions[{i}].derived_from", f"{v.derived_from!r} is not another version"

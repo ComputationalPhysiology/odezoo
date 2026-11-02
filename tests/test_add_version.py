@@ -20,6 +20,7 @@ def test_adds_v1_then_v2(checkout, tmp_path):
     m = load_checkout(checkout).get("beeler_reuter_1977")
     assert [x.id for x in m.versions] == ["pmr-cb090c9", "v1"]
     assert (checkout / BR / "v1.ode").read_bytes() == b"states(V=-84)\n"
+    src.write_bytes(b"states(V=-85)\n")
     assert add_version(checkout, "beeler_reuter_1977", src, derived_from="v1").id == "v2"
 
 
@@ -73,3 +74,13 @@ def test_unknown_parent_is_named(checkout, tmp_path):
     src.write_bytes(b"x")
     with pytest.raises(RegistryError, match="nope"):
         add_version(checkout, "beeler_reuter_1977", src, derived_from="nope")
+
+
+def test_an_unchanged_file_is_refused(checkout, tmp_path):
+    before = (checkout / BR / "model.toml").read_text()
+    src = tmp_path / "br.cellml"
+    src.write_bytes((checkout / BR / "pmr-cb090c9.cellml").read_bytes())
+    with pytest.raises(RegistryError, match="same file as version pmr-cb090c9"):
+        add_version(checkout, "beeler_reuter_1977", src, derived_from="pmr-cb090c9")
+    assert (checkout / BR / "model.toml").read_text() == before
+    assert not (checkout / BR / "v1.cellml").exists()

@@ -275,4 +275,4 @@ def resolve_commit(root: Path) -> str | None:
     except (OSError, subprocess.SubprocessError):
         return None
     commit = out.stdout.strip()
-    return commit if out.returncode == 0 and GIT_COMMIT.match(commit) else None
+    return commit if out.returncode == 0 and GIT_COMMIT.fullmatch(commit) else None

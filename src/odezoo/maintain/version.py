@@ -28,7 +28,7 @@ def next_version_id(model: Model) -> str:
     str
         `v<N>`, with N one more than the highest such id so far, or `v1` if there is none
     """
-    numbers = [int(m.group(1)) for v in model.versions if (m := OWN_VERSION.match(v.id))]
+    numbers = [int(m.group(1)) for v in model.versions if (m := OWN_VERSION.fullmatch(v.id))]
     return f"v{max(numbers, default=0) + 1}"
 
 
