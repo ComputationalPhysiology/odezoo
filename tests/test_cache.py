@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 
 from helpers import CELLML_BYTES, CELLML_SHA
 
-from odezoo.cache import Cache, cache_dir, default_cache_dir
+from odezoo.cache import Cache, cache_dir, default_cache_dir, write_atomically
 
 H = Path("/h")
 
@@ -59,3 +60,14 @@ def test_clear_removes_only_odezoo_files(tmp_path):
     assert not c.path_for(CELLML_SHA, ".cellml").exists()
     for kept in ("http/myproject/index.html", "sha256/notes.txt", "mine.txt"):
         assert (tmp_path / kept).exists(), kept
+
+
+def test_writing_leaves_the_umask_alone(monkeypatch, tmp_path):
+    # The umask is process-wide: setting it even briefly changes the mode of files that other
+    # threads create meanwhile.
+    def set_umask(mask: int) -> int:
+        raise AssertionError("write_atomically set the umask")
+
+    monkeypatch.setattr(os, "umask", set_umask)
+    write_atomically(tmp_path / "new.cellml", b"x")
+    assert (tmp_path / "new.cellml").read_bytes() == b"x"

@@ -5,9 +5,9 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import secrets
 import stat
 import sys
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -74,24 +74,12 @@ def cache_dir(explicit: Path | str | None = None) -> Path:
     return default_cache_dir()
 
 
-def _umask() -> int:
-    """Return the process's umask, which can only be read by setting it
-
-    Returns
-    -------
-    int
-        The umask, which is left as it was
-    """
-    current = os.umask(0)
-    os.umask(current)
-    return current
-
-
 def write_atomically(path: Path, data: bytes) -> None:
     """Write `data` to `path` so that `path` never holds part of it
 
     The file gets the mode a plain write would give it: that of the file it replaces, or else
-    0666 less the umask (mkstemp alone would make every file private to its owner).
+    0666 less the umask. (mkstemp would make every file private to its owner, and reading the
+    umask means setting it, which changes it for every thread for a moment.)
 
     Parameters
     ----------
@@ -107,17 +95,20 @@ def write_atomically(path: Path, data: bytes) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        mode = stat.S_IMODE(path.stat().st_mode)
+        mode: int | None = stat.S_IMODE(path.stat().st_mode)
     except FileNotFoundError:
-        mode = 0o666 & ~_umask()
-    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".part")
+        mode = None
+    temporary = path.parent / f".{path.name}.{secrets.token_hex(8)}.part"
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+    fd = os.open(temporary, flags, 0o666)  # the umask applies, as for a plain write
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(data)
-        os.chmod(temporary, mode)
+        if mode is not None:
+            os.chmod(temporary, mode)
         os.replace(temporary, path)
     except BaseException:
-        Path(temporary).unlink(missing_ok=True)
+        temporary.unlink(missing_ok=True)
         raise
 
 

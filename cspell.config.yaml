@@ -40,3 +40,6 @@ words:
   - esummary
   - localappdata
   - xlink
+  - wronly
+  - creat
+  - excl
