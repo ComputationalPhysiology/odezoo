@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..schema import Model, Version, _version_to_dict, model_to_dict
+from ..schema import Model, Version, model_to_dict, version_to_dict
 
 
 def _value(key: str, value: Any) -> str:
@@ -135,4 +135,4 @@ def version_block(version: Version) -> str:
     str
         The table, ending in a newline
     """
-    return "\n".join(_version_lines(_version_to_dict(version))) + "\n"
+    return "\n".join(_version_lines(version_to_dict(version))) + "\n"

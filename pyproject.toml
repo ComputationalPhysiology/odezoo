@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [{ name = "Henrik Finsberg", email = "henriknf@simula.no" }]
-dependencies = ["rich"]
+dependencies = ["rich>=13"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "pytest-socket", "hatchling"]

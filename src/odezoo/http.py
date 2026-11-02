@@ -13,7 +13,7 @@ import urllib.request
 from collections.abc import Callable, Mapping
 from urllib.parse import urlsplit
 
-from . import __version__
+from ._version import __version__
 from .errors import OdezooError
 
 USER_AGENT = f"odezoo/{__version__} (+https://github.com/ComputationalPhysiology/odezoo)"

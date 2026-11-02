@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from rich.console import Console
 from rich.style import Style
@@ -16,8 +17,10 @@ from rich.table import Table
 from rich.text import Text
 
 from .errors import FetchError
-from .maintain.check import Report
 from .schema import Model, Paper
+
+if TYPE_CHECKING:  # only for the type hint; printing a report needs nothing from check
+    from .maintain.check import Report
 
 
 def console(*, stderr: bool = False) -> Console:

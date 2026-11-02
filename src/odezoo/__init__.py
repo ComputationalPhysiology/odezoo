@@ -1,16 +1,8 @@
 """odezoo: a curated registry of ODE models, fetched and verified by sha256"""
 
-from importlib.metadata import PackageNotFoundError, version
-
-__version__: str
-try:
-    __version__ = version("odezoo")
-except PackageNotFoundError:  # running from a source tree that is not installed (the build hook)
-    __version__ = "0+unknown"
-
-# Imported after __version__, which odezoo.http reads.
-from .api import get, model, models, search  # noqa: E402
-from .errors import (  # noqa: E402
+from ._version import __version__
+from .api import get, model, models, search
+from .errors import (
     FetchError,
     ModelNotFound,
     OdezooError,
@@ -18,7 +10,7 @@ from .errors import (  # noqa: E402
     RegistryError,
     VersionNotFound,
 )
-from .schema import Model, Paper, Source, Version  # noqa: E402
+from .schema import Model, Paper, Source, Version
 
 __all__ = [
     "FetchError",

@@ -10,6 +10,7 @@ repos:
         exclude: ^(models|LICENSES)/
       - id: check-yaml
       - id: check-added-large-files
+        args: [--maxkb=1024]  # T-World's CellML is 512 kB
       - id: check-toml
 
   - repo: https://github.com/astral-sh/ruff-pre-commit

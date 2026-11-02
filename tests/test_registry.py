@@ -92,4 +92,5 @@ def test_wheel_bundles_registry_and_no_model_files(tmp_path, monkeypatch):
         names = wheel.namelist()
         data = json.loads(wheel.read("odezoo/registry.json"))
     assert not [n for n in names if n.endswith((".cellml", ".ode", ".toml"))]
+    assert "odezoo/py.typed" in names  # type checkers read the package's hints (PEP 561)
     assert data["commit"] == resolve_commit(REPO)

@@ -35,8 +35,9 @@ def test_fake_server_serves_and_records(http_server):
     assert http_server.requests[0][0] == "/a"
 
 
-def test_gitattributes_keeps_model_bytes():
-    assert "models/** -text" in (REPO / ".gitattributes").read_text().splitlines()
+def test_gitattributes_keeps_model_and_licence_bytes():
+    lines = (REPO / ".gitattributes").read_text().splitlines()
+    assert "models/** -text" in lines and "LICENSES/** -text" in lines
 
 
 def test_package_modules_import_each_other_relatively():

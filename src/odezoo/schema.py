@@ -952,7 +952,7 @@ def _source_to_dict(source: Source) -> dict[str, Any]:
     )
 
 
-def _version_to_dict(version: Version) -> dict[str, Any]:
+def version_to_dict(version: Version) -> dict[str, Any]:
     """Return the dict form of a version, as in `model.toml`
 
     Parameters
@@ -1007,6 +1007,6 @@ def model_to_dict(model: Model) -> dict[str, Any]:
             "default_version": model.default_version,
             "paper": _paper_to_dict(model.paper),
             "references": [_paper_to_dict(p) for p in model.references],
-            "versions": [_version_to_dict(v) for v in model.versions],
+            "versions": [version_to_dict(v) for v in model.versions],
         }
     )
