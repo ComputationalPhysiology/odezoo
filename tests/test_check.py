@@ -50,6 +50,30 @@ def test_stray_file(checkout):
     assert any("extra.txt" in e and "not referenced" in e for e in check(checkout).errors)
 
 
+def test_licence_file_next_to_the_model_is_allowed(checkout):
+    (checkout / BR / "LICENSE").write_text("Copyright (c) 2025 Someone\n")
+    assert check(checkout).ok
+
+
+def mit_checkout(tmp_path, *, notice: bool):
+    """A checkout whose one model keeps a copy under MIT, with or without its LICENSE file"""
+    model, files = ode_model(GOOD_ODE, license="MIT")
+    root = write_checkout(tmp_path / "reg", [(model, files)])
+    (root / "LICENSES/MIT.txt").write_text("MIT License\n")
+    if notice:
+        (root / BR / "LICENSE").write_text("Copyright (c) 2025 Someone\n")
+    return root
+
+
+def test_mit_copy_needs_its_licence_file(tmp_path):
+    errors = check(mit_checkout(tmp_path, notice=False)).errors
+    assert any(f"{BR}/LICENSE" in e and "copyright notice" in e for e in errors)
+
+
+def test_mit_copy_with_its_licence_file_is_ok(tmp_path):
+    assert check(mit_checkout(tmp_path, notice=True)).errors == []
+
+
 def test_missing_licence_text(checkout):
     (checkout / "LICENSES/CC-BY-3.0.txt").unlink()
     assert any("LICENSES/CC-BY-3.0.txt" in e for e in check(checkout).errors)

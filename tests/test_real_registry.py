@@ -42,7 +42,9 @@ def test_seed_models():
             f"{family}_m",
         ]
     assert [m.id for m in models.values() if not m.reviewed] == ["puglisi_bers_2001"]
-    assert models["tworld"].versions[0].license == "MIT"
+    # jtmff/TWorld's LICENSE and README at the pinned commit say GPL v3 (the survey said MIT).
+    assert models["tworld"].versions[0].license == "GPL-3.0-only"
     assert models["torord_dyn_cl"].versions[0].license == "GPL-3.0-only"
     assert "Marbán E" in models["winslow_1999"].paper.authors
     assert models["noble_1998"].paper.pubmed == 9487284
+    assert models["mcallister_1975"].species == "unknown"  # the survey records a note instead

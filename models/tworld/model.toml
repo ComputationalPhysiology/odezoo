@@ -16,7 +16,7 @@ doi = "10.1101/2025.03.24.645031"
 id = "github-581e711"
 format = "cellml"
 sha256 = "be42c38abdd31dbd3aeac0271ad8c59589a936507084db0d0822af9ccad1a282"
-license = "MIT"
+license = "GPL-3.0-only"
 file = "github-581e711.cellml"
 added = 2026-11-03
 

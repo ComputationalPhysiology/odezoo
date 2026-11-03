@@ -2,6 +2,7 @@ id = "mcallister_1975"
 name = "McAllister–Noble–Tsien 1975"
 description = "Species, as the survey records it: canine (S&D Table 1); data from sheep and calf Purkinje fibres."
 categories = ["electrophysiology"]
+species = "unknown"
 cell_type = "Purkinje fibre (model B: Fozzard–Hiraoka r-gate kinetics)"
 reviewed = true
 
