@@ -82,3 +82,19 @@ def test_cli_check_against_a_bad_file(capsys, checkout, tmp_path, content):
     code, _, err = run(capsys, "--registry", str(checkout), "registry", "check", "--against",
                        str(old))  # fmt: skip
     assert code == 1 and "old.json" in err and len(err.strip().splitlines()) == 1
+
+
+@pytest.mark.parametrize(
+    "field, value",
+    [
+        ("source", {"type": "url", "url": "https://example.org/other.ode"}),
+        ("added", "2027-02-01"),
+        ("derived_from", "pmr-cb090c9"),
+    ],
+)
+def test_only_licence_and_notes_may_change(field, value):
+    # Spec §5: once on main, only a version's license and notes may be corrected.
+    changed = {**V1, field: value}
+    assert append_only_problems(doc(V0, V1), doc(V0, changed)) == [
+        f"beeler_reuter_1977 v1: {field} changed"
+    ]

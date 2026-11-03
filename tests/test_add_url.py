@@ -77,6 +77,25 @@ def test_github_branch_is_pinned_to_its_commit(http_server):
     assert http_server.requests[0][1]["Accept"] == "application/vnd.github.sha"
 
 
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/jtmff/TWorld/raw/main/CellML/TWorld.cellml",
+        "https://www.github.com/jtmff/TWorld/blob/main/CellML/TWorld.cellml",
+        "https://raw.githubusercontent.com/jtmff/TWorld/refs/heads/main/CellML/TWorld.cellml",
+    ],
+)
+def test_other_github_branch_urls_are_pinned(http_server, url):
+    http_server.add("/repos/jtmff/TWorld/commits/main", C.encode())
+    s = url_source(url, http=http(), api=http_server.url)
+    assert (s.type, s.repo, s.commit, s.path) == (
+        "github",
+        "jtmff/TWorld",
+        C,
+        "CellML/TWorld.cellml",
+    )
+
+
 def test_pmr_rawfile_url():
     s = url_source(
         f"{PMR}/workspace/beeler_reuter_1977/rawfile/{C}/beeler_reuter_1977.cellml", http=FAIL
@@ -220,3 +239,12 @@ def test_cli_add_url(capsys, empty_checkout, http_server):
     code, out, _ = run(capsys, "--registry", str(empty_checkout), "registry", "add", "url", url,
                        "--id", "m")  # fmt: skip
     assert code == 0 and "Unchanged m" in out
+
+
+@pytest.mark.parametrize(
+    "url", [f"{PMR}/exposure/abc", f"{PMR}/e/5f/x.cellml/view", f"{PMR}/workspace/x"]
+)
+def test_add_url_points_pmr_pages_to_a_file_url(empty_checkout, url):
+    with pytest.raises(RegistryError, match="pinned to a commit"):
+        add_url(empty_checkout, url, id="m", http=FAIL, today=TODAY)
+    assert model_files(empty_checkout) == {}

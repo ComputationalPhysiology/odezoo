@@ -1,7 +1,8 @@
 """The append-only rule: a version, once released, never changes and is never removed
 
 A file's identity is its sha256, so "same release, same bytes" holds only if the fields that pick
-the bytes never change. This compares two `registry.json` documents: an older one, such as
+the bytes, and where they come from, never change: only a version's `license` and `notes` may be
+corrected (spec §5). This compares two `registry.json` documents: an older one, such as
 `main`'s, and the one a change would make.
 """
 
@@ -15,8 +16,8 @@ from typing import Any
 from ..errors import RegistryError
 from ..registry import SCHEMA_VERSION
 
-# The fields of a version that may never change; `license` and `notes` may be corrected.
-FROZEN = ("id", "format", "sha256", "file")
+# The fields of a version that may be corrected; every other field is frozen.
+CORRECTABLE = frozenset({"license", "notes"})
 
 
 def _versions(doc: Mapping[str, Any]) -> dict[str, dict[str, Mapping[str, Any]]]:
@@ -59,8 +60,9 @@ def append_only_problems(old: Mapping[str, Any], new: Mapping[str, Any]) -> list
             if now is None:
                 problems.append(f"{model_id} {version_id}: removed")
                 continue
-            for field in FROZEN:
-                if version.get(field) != now.get(field):
+            fields = [*version, *(key for key in now if key not in version)]
+            for field in fields:
+                if field not in CORRECTABLE and version.get(field) != now.get(field):
                     problems.append(f"{model_id} {version_id}: {field} changed")
     return problems
 

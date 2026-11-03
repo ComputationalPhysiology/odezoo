@@ -128,11 +128,14 @@ def url_source(url: str, *, http: Http, api: str = GITHUB_API) -> Source:
         raise RegistryError(f"{url} must be an http:// or https:// URL")
     segments = [unquote(s) for s in parts.path.split("/")[1:]]
     host = parts.hostname
-    if host == "github.com" and len(segments) >= 4 and segments[2] == "blob":
-        owner, repo, _, ref, *path = segments
-        return _github(owner, repo, ref, "/".join(path), http=http, api=api)
+    if host in ("github.com", "www.github.com") and len(segments) >= 4:
+        if segments[2] in ("blob", "raw"):
+            owner, repo, _, ref, *path = segments
+            return _github(owner, repo, ref, "/".join(path), http=http, api=api)
     if host == "raw.githubusercontent.com" and len(segments) >= 3:
         owner, repo, ref, *path = segments
+        if ref == "refs" and len(path) >= 2 and path[0] in ("heads", "tags"):
+            ref, path = path[1], path[2:]  # GitHub's Raw button: refs/heads/<branch>/<path>
         return _github(owner, repo, ref, "/".join(path), http=http, api=api)
     if (
         host == "zenodo.org"
@@ -219,8 +222,11 @@ def add_url(
     HttpError
         If the file cannot be downloaded
     """
+    parts = urlsplit(url)
+    if parts.hostname == PMR_HOST:
+        _pmr(url, parts)  # a PMR page is told which URL to use, before the suffix is read
     formats = {ext: format for format, ext in FORMATS.items()}
-    suffix = PurePosixPath(urlsplit(url).path).suffix
+    suffix = PurePosixPath(parts.path).suffix
     format = formats.get(suffix)
     if format is None:
         raise RegistryError(f"{url}: {suffix or 'no extension'} is not one of {', '.join(formats)}")
