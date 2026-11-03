@@ -1,0 +1,27 @@
+id = "pandit_2003"
+name = "Pandit et al. 2003 (control rat RV cell, Diabetes = 0)"
+categories = ["electrophysiology"]
+species = "rat"
+cell_type = "ventricular myocyte (control right-ventricular cell of the paper; S&D Table 1: rat LV, type-I diabetes)"
+reviewed = true
+
+[paper]
+title = "A mathematical model of the electrophysiological alterations in rat ventricular myocytes in type-I diabetes"
+authors = ["Pandit SV", "Giles WR", "Demir SS"]
+journal = "Biophys J"
+year = 2003
+doi = "10.1016/S0006-3495(03)74902-9"
+
+[[versions]]
+id = "pmr-6081bb8"
+format = "cellml"
+sha256 = "9ef3bf73524d263bc848d684f3ec09d90cf9cee98e30a5d26f6c79a371e17c2b"
+license = "CC-BY-3.0"
+file = "pmr-6081bb8.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/pandit_giles_demir_2003"
+commit = "6081bb8231a05f14b40b7f81e63d162e6fccc2bd"
+path = "pandit_giles_demir_2003.cellml"

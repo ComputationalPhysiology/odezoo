@@ -1,0 +1,27 @@
+id = "courtemanche_1998"
+name = "Courtemanche et al. 1998"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "atrial myocyte"
+reviewed = true
+
+[paper]
+title = "Ionic mechanisms underlying human atrial action potential properties: insights from a mathematical model"
+authors = ["Courtemanche M", "Ramirez RJ", "Nattel S"]
+journal = "Am J Physiol"
+year = 1998
+doi = "10.1152/ajpheart.1998.275.1.H301"
+
+[[versions]]
+id = "pmr-7833542"
+format = "cellml"
+sha256 = "10c8a66fa537b17f94c93354a793e90fd493b21356a448134172b66fa7a212fc"
+license = "CC-BY-3.0"
+file = "pmr-7833542.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/courtemanche_ramirez_nattel_1998"
+commit = "78335420620450b2eab817577c0faf4450bbf8cb"
+path = "courtemanche_ramirez_nattel_1998.cellml"

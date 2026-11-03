@@ -1,0 +1,27 @@
+id = "wang_sobie_2008"
+name = "Wang–Sobie 2008"
+categories = ["electrophysiology"]
+species = "mouse (neonatal, day 1)"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "Mathematical model of the neonatal mouse ventricular action potential"
+authors = ["Wang LJ", "Sobie EA"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2008
+doi = "10.1152/ajpheart.01376.2007"
+
+[[versions]]
+id = "pmr-e46c350"
+format = "cellml"
+sha256 = "0580c79f0b2f68af47311267505a65bd8ef6e6baba0be53a5a7a92a65cee742d"
+license = "CC-BY-3.0"
+file = "pmr-e46c350.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/wang_sobie_2008"
+commit = "e46c3504eb74c2eac4ceab5d57a78c97b7110568"
+path = "wang_sobie_2008.cellml"

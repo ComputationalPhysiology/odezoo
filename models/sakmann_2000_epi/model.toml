@@ -1,0 +1,28 @@
+id = "sakmann_2000_epi"
+name = "Sakmann et al. 2000, epicardial"
+family = "sakmann_2000"
+categories = ["electrophysiology"]
+species = "guinea pig"
+cell_type = "ventricular myocardium, epicardial"
+reviewed = true
+
+[paper]
+title = "Distribution of a persistent sodium current across the ventricular wall in guinea pigs"
+authors = ["Sakmann BF", "Spindler AJ", "Bryant SM", "Linz KW", "Noble D"]
+journal = "Circ Res"
+year = 2000
+doi = "10.1161/01.RES.87.10.910"
+
+[[versions]]
+id = "pmr-3999dfc"
+format = "cellml"
+sha256 = "946523ca27be7352f9e7e0ba3e5e3e1dda95cc6427ed0f3f4d735b16b858758e"
+license = "CC-BY-3.0"
+file = "pmr-3999dfc.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/sakmann_spindler_bryant_linz_noble_2000"
+commit = "3999dfc860ad670ec81df50e3a233aab9b8c2684"
+path = "sakmann_spindler_bryant_linz_noble_2000_a.cellml"

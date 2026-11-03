@@ -1,0 +1,28 @@
+id = "bondarenko_2004"
+name = "Bondarenko et al. 2004, apical cell"
+categories = ["electrophysiology"]
+species = "mouse"
+cell_type = "ventricular myocyte, apex"
+reviewed = true
+
+[paper]
+title = "Computer model of action potential of mouse ventricular myocytes"
+authors = ["Bondarenko VE", "Szigeti GP", "Bett GCL", "Kim SJ", "Rasmusson RL"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2004
+doi = "10.1152/ajpheart.00185.2003"
+pubmed = 15142845
+
+[[versions]]
+id = "pmr-5019e4a"
+format = "cellml"
+sha256 = "f04eda8d0ebefa6ce7fc9cd0ba287de99de812a3e2614c969d45711e8fb28aed"
+license = "CC-BY-3.0"
+file = "pmr-5019e4a.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/bondarenko_szigeti_bett_kim_rasmusson_2004"
+commit = "5019e4a76196c45cb6ff3fcfb136f3196b697ae8"
+path = "bondarenko_szigeti_bett_kim_rasmusson_2004_apical.cellml"

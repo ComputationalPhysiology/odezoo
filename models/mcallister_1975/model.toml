@@ -1,0 +1,27 @@
+id = "mcallister_1975"
+name = "McAllister–Noble–Tsien 1975"
+description = "Species, as the survey records it: canine (S&D Table 1); data from sheep and calf Purkinje fibres."
+categories = ["electrophysiology"]
+cell_type = "Purkinje fibre (model B: Fozzard–Hiraoka r-gate kinetics)"
+reviewed = true
+
+[paper]
+title = "Reconstruction of the electrical activity of cardiac Purkinje fibres"
+authors = ["McAllister RE", "Noble D", "Tsien RW"]
+journal = "J Physiol"
+year = 1975
+doi = "10.1113/jphysiol.1975.sp011080"
+
+[[versions]]
+id = "pmr-6ec9ddd"
+format = "cellml"
+sha256 = "43b41190e1ce5114734a2fa622ceace8bdd8150076f006c72ed20b02426671b4"
+license = "CC-BY-3.0"
+file = "pmr-6ec9ddd.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/mcallister_noble_tsien_1975"
+commit = "6ec9ddd70248f369c4e2264b2f975cd1e6e59fa0"
+path = "mcallister_noble_tsien_1975_b.cellml"

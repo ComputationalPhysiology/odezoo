@@ -1,0 +1,27 @@
+id = "ohara_rudy_2011"
+name = "O'Hara-Rudy 2011 (ORd), endocardial"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, endocardial (celltype = 0)"
+reviewed = true
+
+[paper]
+title = "Simulation of the undiseased human cardiac ventricular action potential: model formulation and experimental validation"
+authors = ["O'Hara T", "Virág L", "Varró A", "Rudy Y"]
+journal = "PLoS Comput Biol"
+year = 2011
+doi = "10.1371/journal.pcbi.1002061"
+
+[[versions]]
+id = "pmr-e65b98c"
+format = "cellml"
+sha256 = "57c712e043e07c45847f331fadb5295305736d231f0506ae61cb4dfea23052e0"
+license = "CC-BY-3.0"
+file = "pmr-e65b98c.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/w/andre/SAN-ORd"
+commit = "e65b98c32226f05047cd3ca5ed6bbf22919887a1"
+path = "Ohara_Rudy_2011.cellml"

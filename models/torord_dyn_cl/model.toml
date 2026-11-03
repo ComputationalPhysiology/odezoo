@@ -1,0 +1,27 @@
+id = "torord_dyn_cl"
+name = "ToR-ORd-dynCl (Tomek et al. 2020), endocardial"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, endocardial (celltype = 0)"
+reviewed = true
+
+[paper]
+title = "ToR-ORd-dynCl: an update of the ToR-ORd model of human ventricular cardiomyocyte with dynamic intracellular chloride"
+authors = ["Tomek J", "Bueno-Orovio A", "Rodriguez B"]
+journal = "bioRxiv"
+year = 2020
+doi = "10.1101/2020.06.01.127043"
+
+[[versions]]
+id = "github-11e463d"
+format = "cellml"
+sha256 = "7105df990758667d630680cb7ec5e32e6d83e3e6655dd1fcf52864290561f11e"
+license = "GPL-3.0-only"
+file = "github-11e463d.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "github"
+repo = "jtmff/torord"
+commit = "11e463da0f083c276c0057211e476f35cc2fc2c0"
+path = "cellml/ToRORd_dynCl_endo.cellml"

@@ -1,0 +1,28 @@
+id = "noble_1991"
+name = "Noble et al. 1991"
+categories = ["electrophysiology"]
+species = "guinea pig"
+cell_type = "ventricular myocardium"
+reviewed = true
+
+[paper]
+title = "The role of sodium-calcium exchange during the cardiac action potential"
+authors = ["Noble D", "Noble SJ", "Bett GCL", "Earm YE", "Ho WK", "So IK"]
+journal = "Ann N Y Acad Sci"
+year = 1991
+doi = "10.1111/j.1749-6632.1991.tb17323.x"
+pubmed = 1785860
+
+[[versions]]
+id = "pmr-db2c895"
+format = "cellml"
+sha256 = "18da43f4c67b1453fbd3a7129634a0804af0b6ecb1be7fe5ee39d9fb3f2e4332"
+license = "CC-BY-3.0"
+file = "pmr-db2c895.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/noble_noble_bett_earm_ho_so_1991"
+commit = "db2c895ea87fe73dd5801c55f6fc566a5240c013"
+path = "noble_noble_bett_earm_ho_so_1991.cellml"

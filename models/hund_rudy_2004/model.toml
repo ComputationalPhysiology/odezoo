@@ -1,0 +1,27 @@
+id = "hund_rudy_2004"
+name = "Hund–Rudy 2004"
+categories = ["electrophysiology"]
+species = "canine"
+cell_type = "ventricular myocardium, epicardial"
+reviewed = true
+
+[paper]
+title = "Rate dependence and regulation of action potential and calcium transient in a canine cardiac ventricular cell model"
+authors = ["Hund TJ", "Rudy Y"]
+journal = "Circulation"
+year = 2004
+doi = "10.1161/01.CIR.0000147231.69595.D3"
+
+[[versions]]
+id = "pmr-5a88399"
+format = "cellml"
+sha256 = "09970113b57eb7bee32fe890c1bdb1af429d8062b1fddc8b857f1e4fb8607501"
+license = "CC-BY-3.0"
+file = "pmr-5a88399.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/hund_rudy_2004"
+commit = "5a88399b11518a2f4f85b1745a8321cdede30241"
+path = "hund_rudy_2004_b.cellml"

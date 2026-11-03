@@ -1,0 +1,27 @@
+id = "demir_1994"
+name = "Demir et al. 1994"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "sinoatrial node"
+reviewed = true
+
+[paper]
+title = "A mathematical model of a rabbit sinoatrial node cell"
+authors = ["Demir SS", "Clark JW", "Murphey CR", "Giles WR"]
+journal = "Am J Physiol"
+year = 1994
+doi = "10.1152/ajpcell.1994.266.3.C832"
+
+[[versions]]
+id = "pmr-807df61"
+format = "cellml"
+sha256 = "a4732491297d0798ed5b16c06a0b6d54bcd77109285e467c4b804f5508afb46a"
+license = "CC-BY-3.0"
+file = "pmr-807df61.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/demir_clark_giles_murphey_1994"
+commit = "807df612b0beb0df80efcb9b0e9ce24598a0fb63"
+path = "demir_clark_giles_murphey_1994.cellml"

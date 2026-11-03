@@ -1,0 +1,29 @@
+id = "tentusscher_2004_m"
+name = "ten Tusscher et al. 2004, M cell"
+family = "tentusscher_2004"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, midmyocardial (M cell)"
+reviewed = true
+
+[paper]
+title = "A model for human ventricular tissue"
+authors = ["ten Tusscher KHWJ", "Noble D", "Noble PJ", "Panfilov AV"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2004
+doi = "10.1152/ajpheart.00794.2003"
+pubmed = 14656705
+
+[[versions]]
+id = "pmr-fe9c47d"
+format = "cellml"
+sha256 = "5bc63679e49884e7aac2a15d32e92039505cc3ab5fac1003f68f46980d098986"
+license = "CC-BY-3.0"
+file = "pmr-fe9c47d.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/tentusscher_noble_noble_panfilov_2004"
+commit = "fe9c47d8ed053bed879b952c2c37a2426c0702ef"
+path = "tentusscher_noble_noble_panfilov_2004_a.cellml"

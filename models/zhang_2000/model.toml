@@ -1,0 +1,27 @@
+id = "zhang_2000"
+name = "Zhang et al. 2000"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "sinoatrial node, periphery (membrane.dCell = 1; the file default 0 = centre does not beat, see NOTES.md)"
+reviewed = true
+
+[paper]
+title = "Mathematical models of action potentials in the periphery and center of the rabbit sinoatrial node"
+authors = ["Zhang H", "Holden AV", "Kodama I", "Honjo H", "Lei M", "Varghese T", "Boyett MR"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2000
+doi = "10.1152/ajpheart.2000.279.1.H397"
+
+[[versions]]
+id = "pmr-97582b5"
+format = "cellml"
+sha256 = "688e4d11f680b197739da5e4ef5ddbe6c5b5bb631e14c9f66ca3d579e38d88b1"
+license = "CC-BY-3.0"
+file = "pmr-97582b5.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/zhang_holden_kodama_honjo_lei_varghese_boyett_2000"
+commit = "97582b5677060f5a3d00e391d1e4b517d28fbe82"
+path = "zhang_holden_kodama_honjo_lei_varghese_boyett_2000.cellml"

@@ -1,0 +1,27 @@
+id = "difrancesco_noble_1985"
+name = "DiFrancesco–Noble 1985"
+categories = ["electrophysiology"]
+species = "mammalian"
+cell_type = "Purkinje fibre"
+reviewed = true
+
+[paper]
+title = "A model of cardiac electrical activity incorporating ionic pumps and concentration changes"
+authors = ["DiFrancesco D", "Noble D"]
+journal = "Phil Trans R Soc Lond B"
+year = 1985
+doi = "10.1098/rstb.1985.0001"
+
+[[versions]]
+id = "pmr-44d2130"
+format = "cellml"
+sha256 = "1f515af18f8bf170238f944cd326a783fb0d0517206d6d58f7c6a50362d81f58"
+license = "CC-BY-3.0"
+file = "pmr-44d2130.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/difrancesco_noble_1985"
+commit = "44d2130fb683ec46e256f9a95765bf648c7227c4"
+path = "difrancesco_noble_1985.cellml"

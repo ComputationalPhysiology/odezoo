@@ -1,0 +1,28 @@
+id = "pandit_2001"
+name = "Pandit et al. 2001, epicardial cell"
+categories = ["electrophysiology"]
+species = "rat"
+cell_type = "left ventricular myocyte, epicardial"
+reviewed = true
+
+[paper]
+title = "A mathematical model of action potential heterogeneity in adult rat left ventricular myocytes"
+authors = ["Pandit SV", "Clark RB", "Giles WR", "Demir SS"]
+journal = "Biophys J"
+year = 2001
+doi = "10.1016/S0006-3495(01)75943-7"
+pubmed = 11720973
+
+[[versions]]
+id = "pmr-03f7147"
+format = "cellml"
+sha256 = "e0dcaa484ab75060d7a0f9ab89c7b07681960a7db3c2f9739be692c9f4d3f8e2"
+license = "CC-BY-3.0"
+file = "pmr-03f7147.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/pandit_clark_giles_demir_2001"
+commit = "03f7147d47aa58c3fc524ab0e7340c6a67ee2e34"
+path = "pandit_clark_giles_demir_2001_epicardial_cell.cellml"

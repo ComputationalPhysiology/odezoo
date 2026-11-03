@@ -1,0 +1,28 @@
+id = "stewart_2009"
+name = "Stewart et al. 2009"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "Purkinje fibre"
+reviewed = true
+
+[paper]
+title = "Mathematical models of the electrical action potential of Purkinje fibre cells"
+authors = ["Stewart P", "Aslanidi OV", "Noble D", "Noble PJ", "Boyett MR", "Zhang H"]
+journal = "Phil Trans R Soc A"
+year = 2009
+doi = "10.1098/rsta.2008.0283"
+pubmed = 19414454
+
+[[versions]]
+id = "pmr-49ffbf9"
+format = "cellml"
+sha256 = "4d3c40ebcacc112c43d870c13a44c81ab7a255f4210f49458170cf792cc0e16f"
+license = "CC-BY-3.0"
+file = "pmr-49ffbf9.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/stewart_aslanidi_noble_noble_boyett_zhang_2009"
+commit = "49ffbf9b8e8c7d03d99ee35b952d4965b4824f79"
+path = "stewart_aslanidi_noble_noble_boyett_zhang_2009.cellml"

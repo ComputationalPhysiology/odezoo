@@ -1,0 +1,29 @@
+id = "tentusscher_2004_endo"
+name = "ten Tusscher et al. 2004, endocardial"
+family = "tentusscher_2004"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, endocardial"
+reviewed = true
+
+[paper]
+title = "A model for human ventricular tissue"
+authors = ["ten Tusscher KHWJ", "Noble D", "Noble PJ", "Panfilov AV"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2004
+doi = "10.1152/ajpheart.00794.2003"
+pubmed = 14656705
+
+[[versions]]
+id = "pmr-941ec8e"
+format = "cellml"
+sha256 = "1b1d3c8896e990ee4d496e71fe4f0a5602651ec1afa9d2a5d29cfc2d65fc185a"
+license = "CC-BY-3.0"
+file = "pmr-941ec8e.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/tentusscher_noble_noble_panfilov_2004"
+commit = "941ec8e54e46e6fe82765c17f1d47582169baac2"
+path = "tentusscher_noble_noble_panfilov_2004_c.cellml"

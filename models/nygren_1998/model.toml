@@ -1,0 +1,28 @@
+id = "nygren_1998"
+name = "Nygren et al. 1998"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "atrial myocyte"
+reviewed = true
+
+[paper]
+title = "Mathematical model of an adult human atrial cell: the role of K+ currents in repolarization"
+authors = ["Nygren A", "Fiset C", "Firek L", "Clark JW", "Lindblad DS", "Clark RB", "Giles WR"]
+journal = "Circ Res"
+year = 1998
+doi = "10.1161/01.RES.82.1.63"
+pubmed = 9440706
+
+[[versions]]
+id = "pmr-2768515"
+format = "cellml"
+sha256 = "fc9eadca45af200c4bc6538992ec7c506086a6a4a80f8e486ce141793a11d988"
+license = "CC-BY-3.0"
+file = "pmr-2768515.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/nygren_fiset_firek_clark_lindblad_clark_giles_1998"
+commit = "2768515a81a686e53fe7793385f3be23737957ff"
+path = "nygren_fiset_firek_clark_lindblad_clark_giles_1998.cellml"

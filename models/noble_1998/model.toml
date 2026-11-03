@@ -1,0 +1,27 @@
+id = "noble_1998"
+name = "Noble et al. 1998"
+categories = ["electrophysiology"]
+species = "guinea pig"
+cell_type = "ventricular myocardium"
+reviewed = true
+
+[paper]
+title = "Improved guinea-pig ventricular cell model incorporating a diadic space, IKr and IKs, and length- and tension-dependent processes"
+authors = ["Noble D", "Varghese A", "Kohl P", "Noble P"]
+journal = "Can J Cardiol"
+year = 1998
+pubmed = 9487284
+
+[[versions]]
+id = "pmr-08c8536"
+format = "cellml"
+sha256 = "cba7fc6b9fbdafdef03a0023c1ed8660df6aae9f8ccf62b5c3a29eb419869d14"
+license = "CC-BY-3.0"
+file = "pmr-08c8536.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/noble_varghese_kohl_noble_1998"
+commit = "08c8536420a9c5960c374bb779ac86176465c9a0"
+path = "noble_varghese_kohl_noble_1998_a.cellml"

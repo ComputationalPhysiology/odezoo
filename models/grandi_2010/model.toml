@@ -1,0 +1,27 @@
+id = "grandi_2010"
+name = "Grandi-Pasqualini-Bers 2010, epicardial"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, epicardial (epi = 1, the default of the file)"
+reviewed = true
+
+[paper]
+title = "A novel computational model of the human ventricular action potential and Ca transient"
+authors = ["Grandi E", "Pasqualini FS", "Bers DM"]
+journal = "J Mol Cell Cardiol"
+year = 2010
+doi = "10.1016/j.yjmcc.2009.09.019"
+
+[[versions]]
+id = "pmr-8a2c891"
+format = "cellml"
+sha256 = "037e6f9452c26ef8cea2cff6ff3e65e41feaf79840351adf63215bfde1528ceb"
+license = "CC-BY-3.0"
+file = "pmr-8a2c891.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/grandi_pasqualini_bers_2010"
+commit = "8a2c891da5f2f1b90d9c465b7bc63f652999d096"
+path = "grandi_pasqualini_bers_2010_flat.cellml"
