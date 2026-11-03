@@ -357,6 +357,34 @@ def _registry_add_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def _registry_upstream(args: argparse.Namespace) -> int:
+    """Run `odezoo registry upstream`: download upstream sources and compare their sha256
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code: 0 if every source gave its file's bytes, else 1
+    """
+    from . import http, render
+    from .maintain.append_only import read_registry_json
+    from .maintain.upstream import check_upstream, new_since, upstream_versions
+    from .registry import load_checkout
+
+    registry = load_checkout(_registry_root(args))
+    if args.new_since:
+        pairs = new_since(registry, read_registry_json(Path(args.new_since)))
+    else:
+        pairs = upstream_versions(registry)
+    results = check_upstream(pairs, http=http.client())
+    render.print_upstream(results, render.console())
+    return 1 if any(r.problem for r in results) else 0
+
+
 def _registry_add_url(args: argparse.Namespace) -> int:
     """Run `odezoo registry add url`: add the file at a URL to a model, making it if need be
 
@@ -512,6 +540,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--against",
         metavar="REGISTRY_JSON",
         help="also check that no version of this older registry.json was changed or removed",
+    )
+    upstream = _command(
+        registry, "upstream", "download upstream sources and compare sha256", _registry_upstream
+    )
+    upstream.add_argument(
+        "--new-since",
+        metavar="REGISTRY_JSON",
+        help="only the versions this older registry.json does not have",
     )
     build_command = _command(registry, "build", "write registry.json", _registry_build)
     build_command.add_argument("-o", "--output", default="registry.json", metavar="PATH")
