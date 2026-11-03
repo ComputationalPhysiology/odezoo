@@ -124,7 +124,7 @@ class Http:
             return min(float(retry_after), MAX_RETRY_AFTER)
         return RETRY_WAITS[attempt]
 
-    def get(self, url: str) -> bytes:
+    def get(self, url: str, *, accept: str | None = None) -> bytes:
         """Download `url`
 
         A 429 or 503 answer is retried up to three times; any other failure is final.
@@ -133,6 +133,8 @@ class Http:
         ----------
         url : str
             The URL
+        accept : str, optional
+            The `Accept` header, such as `application/json`; by default none is sent
 
         Returns
         -------
@@ -145,7 +147,10 @@ class Http:
             If the download fails, with the status or the network error as the reason
         """
         host = urlsplit(url).hostname or ""
-        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        headers = {"User-Agent": USER_AGENT}
+        if accept is not None:
+            headers["Accept"] = accept
+        request = urllib.request.Request(url, headers=headers)
         for attempt in range(len(RETRY_WAITS) + 1):
             self._space(host)
             try:

@@ -7,6 +7,7 @@ writes it directly. The layout follows `schema.model_to_dict`, which owns the fi
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Any
 
 from ..schema import Model, Version, model_to_dict, version_to_dict
@@ -64,12 +65,12 @@ def _is_table(value: Any) -> bool:
     )
 
 
-def _pairs(table: dict[str, Any]) -> list[str]:
+def _pairs(table: Mapping[str, Any]) -> list[str]:
     """Write a table's plain fields as `key = value` lines, leaving out the tables in it
 
     Parameters
     ----------
-    table : dict[str, Any]
+    table : Mapping[str, Any]
         A table from the dict form of a model
 
     Returns
@@ -80,12 +81,12 @@ def _pairs(table: dict[str, Any]) -> list[str]:
     return [f"{key} = {_value(key, value)}" for key, value in table.items() if not _is_table(value)]
 
 
-def _version_lines(version: dict[str, Any]) -> list[str]:
+def _version_lines(version: Mapping[str, Any]) -> list[str]:
     """Write one version as a `[[versions]]` table, then its `[versions.source]` if it has one
 
     Parameters
     ----------
-    version : dict[str, Any]
+    version : Mapping[str, Any]
         The version's dict form
 
     Returns
@@ -112,12 +113,31 @@ def dump_model(model: Model) -> str:
     str
         The TOML, which `parse_model` reads back as the same model
     """
-    data = model_to_dict(model)
+    return dump_dict(model_to_dict(model))
+
+
+def dump_dict(data: Mapping[str, Any]) -> str:
+    """Write the dict form of a model as the text of its `model.toml`
+
+    Unlike `dump_model`, this also writes a model that breaks the schema's rules, such as one
+    that `odezoo registry add url` made and whose paper is still to be filled in.
+
+    Parameters
+    ----------
+    data : Mapping[str, Any]
+        The model in `model_to_dict`'s form; `paper`, `references` and `versions` may be missing
+
+    Returns
+    -------
+    str
+        The TOML
+    """
     lines = _pairs(data)
-    lines += ["", "[paper]", *_pairs(data["paper"])]
+    if "paper" in data:
+        lines += ["", "[paper]", *_pairs(data["paper"])]
     for reference in data.get("references", []):
         lines += ["", "[[references]]", *_pairs(reference)]
-    for version in data["versions"]:
+    for version in data.get("versions", []):
         lines += ["", *_version_lines(version)]
     return "\n".join(lines) + "\n"
 

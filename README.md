@@ -65,8 +65,13 @@ A flag beats its environment variable.
 
 Each model is a folder under `models/` with a `model.toml` and the files it keeps a copy of.
 `odezoo registry check` checks a checkout, and `odezoo registry add version ID FILE
---derived-from V` adds an edited file as a new version. The full guide to adding models will be
-in the documentation.
+--derived-from V` adds an edited file as a new version.
+
+`odezoo registry add url URL --id ID [--license SPDX]` downloads a file and adds it, as a new model
+or a new version of one. GitHub and PMR URLs are pinned to a commit (for PMR, use the file's
+`rawfile` URL with the full commit id). A new model gets only its id; fill in its name, paper and
+categories, then run `odezoo registry check`. The full guide to adding models will be in the
+documentation.
 
 ## Licence
 

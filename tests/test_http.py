@@ -102,3 +102,9 @@ def test_truncated_body_is_http_error(http_server):
 def test_invalid_url_is_http_error():
     with pytest.raises(HttpError):
         Http(default_interval=0).get("http://127.0.0.1:1/a b")
+
+
+def test_accept_header_is_sent(http_server):
+    url = http_server.add("/x", b"{}")
+    Http(default_interval=0).get(url, accept="application/json")
+    assert http_server.requests[0][1]["Accept"] == "application/json"

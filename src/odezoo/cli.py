@@ -342,6 +342,40 @@ def _registry_add_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def _registry_add_url(args: argparse.Namespace) -> int:
+    """Run `odezoo registry add url`: add the file at a URL to a model, making it if need be
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
+    from . import http
+    from .maintain.url import add_url
+
+    o = add_url(
+        _registry_root(args),
+        args.url,
+        id=args.id,
+        license=args.license,
+        http=http.client(),
+        dry_run=args.dry_run,
+    )
+    verb = {"added model": "model", "added version": "version"}.get(o.action)
+    if verb is None:
+        print(f"Unchanged {o.id}: {o.detail}")
+    else:
+        prefix = "Would add" if args.dry_run else "Added"
+        detail = f"; {o.detail}" if o.detail else ""
+        print(f"{prefix} {verb} {o.id} ({o.version}){detail}")
+    return 0
+
+
 def _filters(parser: argparse.ArgumentParser) -> None:
     """Add the filters and output options that `list` and `search` share
 
@@ -468,6 +502,20 @@ def build_parser() -> argparse.ArgumentParser:
     version.add_argument("--derived-from", required=True, metavar="V", help="the version it edits")
     version.add_argument("--license", metavar="SPDX", help="default: that of --derived-from")
     version.add_argument("--notes", metavar="TEXT", help="what was changed, and why")
+    url = _command(add, "url", "add a file from GitHub, Zenodo, PMR or any URL", _registry_add_url)
+    url.add_argument(
+        "url", metavar="URL", help="the file; GitHub and PMR URLs are pinned to a commit"
+    )
+    url.add_argument("--id", required=True, metavar="ID", help="the model to add it to, or to make")
+    url.add_argument(
+        "--license",
+        default="unknown",
+        metavar="SPDX",
+        help="the file's licence (default: unknown); a copy is kept only if it allows one",
+    )
+    url.add_argument(
+        "--dry-run", action="store_true", help="say what would be added; write nothing"
+    )
     return parser
 
 
