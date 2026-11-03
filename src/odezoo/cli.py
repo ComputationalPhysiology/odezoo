@@ -273,6 +273,9 @@ def _registry_root(args: argparse.Namespace) -> Path:
 def _registry_check(args: argparse.Namespace) -> int:
     """Run `odezoo registry check`: check the checkout's models and print what is wrong
 
+    With --against, also check that no version of an older `registry.json` (such as `main`'s)
+    was changed or removed.
+
     Parameters
     ----------
     args : argparse.Namespace
@@ -284,9 +287,21 @@ def _registry_check(args: argparse.Namespace) -> int:
         The exit code: 0 if there are no errors (warnings are allowed), else 1
     """
     from . import render
+    from .maintain.append_only import append_only_problems, read_registry_json
     from .maintain.check import check
 
-    report = check(_registry_root(args), args.ids or None)
+    root = _registry_root(args)
+    old = read_registry_json(Path(args.against)) if args.against else None
+    report = check(root, args.ids or None)
+    if old is not None:
+        try:
+            new = build(root, commit=None, built=date.today())
+        except RegistryError as e:
+            report.errors.append(
+                f"append-only rule not checked, as the checkout does not load: {e}"
+            )
+        else:
+            report.errors.extend(append_only_problems(old, new))
     render.print_report(report, render.console())
     return 0 if report.ok else 1
 
@@ -493,6 +508,11 @@ def build_parser() -> argparse.ArgumentParser:
     _, registry = _group(commands, "registry", "maintain a registry checkout")
     check = _command(registry, "check", "check models and their files", _registry_check)
     check.add_argument("ids", nargs="*", metavar="ID", help="only these models")
+    check.add_argument(
+        "--against",
+        metavar="REGISTRY_JSON",
+        help="also check that no version of this older registry.json was changed or removed",
+    )
     build_command = _command(registry, "build", "write registry.json", _registry_build)
     build_command.add_argument("-o", "--output", default="registry.json", metavar="PATH")
     _, add = _group(registry, "add", "add models or versions to the checkout")
