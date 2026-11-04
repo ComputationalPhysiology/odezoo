@@ -30,3 +30,21 @@ def test_upstream_pmr_serves_the_same_bytes():
     m = reg.get("beeler_reuter_1977")
     data, _ = fetch_bytes(reg, m, m.versions[0], cache=None, http=Http())
     assert hashlib.sha256(data).hexdigest() == m.versions[0].sha256
+
+
+def test_seed_models():
+    models = load_checkout(REPO).models
+    assert len(models) == 41
+    for family in ("tentusscher_2004", "tentusscher_2006", "sakmann_2000"):
+        assert sorted(m.id for m in models.values() if m.family == family) == [
+            f"{family}_endo",
+            f"{family}_epi",
+            f"{family}_m",
+        ]
+    assert [m.id for m in models.values() if not m.reviewed] == ["puglisi_bers_2001"]
+    # jtmff/TWorld's LICENSE and README at the pinned commit say GPL v3 (the survey said MIT).
+    assert models["tworld"].versions[0].license == "GPL-3.0-only"
+    assert models["torord_dyn_cl"].versions[0].license == "GPL-3.0-only"
+    assert "Marbán E" in models["winslow_1999"].paper.authors
+    assert models["noble_1998"].paper.pubmed == 9487284
+    assert models["mcallister_1975"].species == "unknown"  # the survey records a note instead

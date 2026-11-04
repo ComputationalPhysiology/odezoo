@@ -1,0 +1,28 @@
+id = "fox_2002"
+name = "Fox et al. 2002"
+categories = ["electrophysiology"]
+species = "canine"
+cell_type = "ventricular myocardium"
+reviewed = true
+
+[paper]
+title = "Ionic mechanism of electrical alternans"
+authors = ["Fox JJ", "McHarg JL", "Gilmour RF Jr"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2002
+doi = "10.1152/ajpheart.00612.2001"
+pubmed = 11788399
+
+[[versions]]
+id = "pmr-d296ce2"
+format = "cellml"
+sha256 = "9044a6f87437ab02d802621698a8eefd0f4f09f8ca54c7b612dfb91b854ba391"
+license = "CC-BY-3.0"
+file = "pmr-d296ce2.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/fox_mcharg_gilmour_2002"
+commit = "d296ce29bef211343160abdf6649572df1ea50ec"
+path = "fox_mcharg_gilmour_2002.cellml"

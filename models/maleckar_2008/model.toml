@@ -1,0 +1,28 @@
+id = "maleckar_2008"
+name = "Maleckar et al. 2008"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "atrial myocyte"
+reviewed = true
+
+[paper]
+title = "Mathematical simulations of ligand-gated and cell-type specific effects on the action potential of human atrium"
+authors = ["Maleckar MM", "Greenstein JL", "Trayanova NA", "Giles WR"]
+journal = "Prog Biophys Mol Biol"
+year = 2008
+doi = "10.1016/j.pbiomolbio.2009.01.010"
+pubmed = 19186188
+
+[[versions]]
+id = "pmr-f79f3b0"
+format = "cellml"
+sha256 = "16aaac637067112777f28907accd3caf3824446e38deec5552be1e0bd102b28a"
+license = "CC-BY-3.0"
+file = "pmr-f79f3b0.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/maleckar_greenstein_trayanova_giles_2009"
+commit = "f79f3b0ce1111543e5ee3f39296040e54326640e"
+path = "maleckar_greenstein_trayanova_giles_2009.cellml"

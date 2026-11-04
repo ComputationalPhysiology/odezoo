@@ -1,0 +1,28 @@
+id = "tentusscher_2006_epi"
+name = "ten Tusscher–Panfilov 2006, epicardial"
+family = "tentusscher_2006"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, epicardial"
+reviewed = true
+
+[paper]
+title = "Alternans and spiral breakup in a human ventricular tissue model"
+authors = ["ten Tusscher KHWJ", "Panfilov AV"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2006
+doi = "10.1152/ajpheart.00109.2006"
+
+[[versions]]
+id = "pmr-5dc4239"
+format = "cellml"
+sha256 = "999e4af049776f18a35aa30e09c3a8fa9487ab0b2e9ef6a77489dd371e1d6e6a"
+license = "CC-BY-3.0"
+file = "pmr-5dc4239.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/tentusscher_panfilov_2006"
+commit = "5dc42395eef6044fe766786f7bff197dea355eb3"
+path = "ten_tusscher_model_2006_IK1Ko_epi_units.cellml"

@@ -1,0 +1,27 @@
+id = "jafri_1998"
+name = "Jafri et al. 1998"
+categories = ["electrophysiology"]
+species = "guinea pig"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "Cardiac Ca2+ dynamics: the roles of ryanodine receptor adaptation and sarcoplasmic reticulum load"
+authors = ["Jafri MS", "Rice JJ", "Winslow RL"]
+journal = "Biophys J"
+year = 1998
+doi = "10.1016/S0006-3495(98)77832-4"
+
+[[versions]]
+id = "pmr-d90ab33"
+format = "cellml"
+sha256 = "4aa1b5ceaa455587db089d5310c2bf553811a301e0f19c02b9884331c59fd589"
+license = "CC-BY-3.0"
+file = "pmr-d90ab33.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/jafri_rice_winslow_1998"
+commit = "d90ab33d58f5500d20067b80b595ec9ebaf24501"
+path = "jafri_rice_winslow_1998_a.cellml"

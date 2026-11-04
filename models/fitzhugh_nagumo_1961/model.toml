@@ -1,0 +1,27 @@
+id = "fitzhugh_nagumo_1961"
+name = "FitzHugh–Nagumo 1961"
+categories = ["electrophysiology"]
+species = "generic (dimensionless)"
+cell_type = "nerve membrane (cubic FitzHugh–Nagumo form, dimensionless)"
+reviewed = true
+
+[paper]
+title = "Impulses and physiological states in theoretical models of nerve membrane"
+authors = ["FitzHugh R"]
+journal = "Biophys J"
+year = 1961
+doi = "10.1016/S0006-3495(61)86902-6"
+
+[[versions]]
+id = "pmr-8f99d77"
+format = "cellml"
+sha256 = "9b283ec29c6dea62c261f59042c2cd942aca4403a3125cc684a3908b5055f005"
+license = "CC-BY-3.0"
+file = "pmr-8f99d77.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/fitzhugh_1961"
+commit = "8f99d77593097ffe84e6936425a0d8d2aaa8a880"
+path = "fitzhugh_1961.cellml"

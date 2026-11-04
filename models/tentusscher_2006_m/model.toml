@@ -1,0 +1,28 @@
+id = "tentusscher_2006_m"
+name = "ten Tusscher–Panfilov 2006, M cell"
+family = "tentusscher_2006"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, midmyocardial (M cell)"
+reviewed = true
+
+[paper]
+title = "Alternans and spiral breakup in a human ventricular tissue model"
+authors = ["ten Tusscher KHWJ", "Panfilov AV"]
+journal = "Am J Physiol Heart Circ Physiol"
+year = 2006
+doi = "10.1152/ajpheart.00109.2006"
+
+[[versions]]
+id = "pmr-5dc4239"
+format = "cellml"
+sha256 = "f97df16ce337f031dd6019478dfe5393d9e5d1c517ba386016f138ea3ec46074"
+license = "CC-BY-3.0"
+file = "pmr-5dc4239.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/tentusscher_panfilov_2006"
+commit = "5dc42395eef6044fe766786f7bff197dea355eb3"
+path = "ten_tusscher_model_2006_IK1Ko_M_units.cellml"

@@ -1,0 +1,27 @@
+id = "demir_1999"
+name = "Demir et al. 1999"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "sinoatrial node (with parasympathetic modulation; ACh = 0)"
+reviewed = true
+
+[paper]
+title = "Parasympathetic modulation of sinoatrial node pacemaker activity in rabbit heart: a unifying model"
+authors = ["Demir SS", "Clark JW", "Giles WR"]
+journal = "Am J Physiol"
+year = 1999
+doi = "10.1152/ajpheart.1999.276.6.H2221"
+
+[[versions]]
+id = "pmr-8d0f065"
+format = "cellml"
+sha256 = "6b00b15532346c62bd395b4faa1f4cfbedc6e324992bb8c1412e4a46db75d03b"
+license = "CC-BY-3.0"
+file = "pmr-8d0f065.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/demir_clark_giles_1999"
+commit = "8d0f065ca3c1f2e0e53b841035d9a3a77dab66af"
+path = "demir_clark_giles_1999.cellml"

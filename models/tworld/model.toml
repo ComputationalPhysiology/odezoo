@@ -1,0 +1,27 @@
+id = "tworld"
+name = "T-World (Tomek et al. 2025), endocardial"
+categories = ["electrophysiology"]
+species = "human"
+cell_type = "ventricular myocardium, endocardial (celltype = 0)"
+reviewed = true
+
+[paper]
+title = "T-World: a highly general computational model of a human ventricular myocyte"
+authors = ["Tomek J", "Zhou X", "Martinez-Navarro H", "Holmes M", "Bury T", "Arantes Berg L", "Tomkova M", "Jo E", "Nagy N", "Bertrand A", "Bueno-Orovio A", "Colman MA", "Rodriguez B", "Bers DM", "Heijman J"]
+journal = "bioRxiv"
+year = 2025
+doi = "10.1101/2025.03.24.645031"
+
+[[versions]]
+id = "github-581e711"
+format = "cellml"
+sha256 = "be42c38abdd31dbd3aeac0271ad8c59589a936507084db0d0822af9ccad1a282"
+license = "GPL-3.0-only"
+file = "github-581e711.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "github"
+repo = "jtmff/TWorld"
+commit = "581e711a300357e867319e7e67151ff7c834db12"
+path = "CellML/TWorld.cellml"

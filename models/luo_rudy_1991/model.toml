@@ -1,0 +1,27 @@
+id = "luo_rudy_1991"
+name = "Luo–Rudy 1991"
+categories = ["electrophysiology"]
+species = "guinea pig"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "A model of the ventricular cardiac action potential. Depolarization, repolarization, and their interaction"
+authors = ["Luo CH", "Rudy Y"]
+journal = "Circ Res"
+year = 1991
+doi = "10.1161/01.RES.68.6.1501"
+
+[[versions]]
+id = "pmr-ea7cd8e"
+format = "cellml"
+sha256 = "e45d1056983c35bfcb5acb7dd956a41715c274432d3384a79bc838b16fe6067d"
+license = "CC-BY-3.0"
+file = "pmr-ea7cd8e.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/luo_rudy_1991"
+commit = "ea7cd8ef7491c78b504ea81d0693c574675d3c9b"
+path = "luo_rudy_1991.cellml"

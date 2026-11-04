@@ -273,6 +273,9 @@ def _registry_root(args: argparse.Namespace) -> Path:
 def _registry_check(args: argparse.Namespace) -> int:
     """Run `odezoo registry check`: check the checkout's models and print what is wrong
 
+    With --against, also check that no version of an older `registry.json` (such as `main`'s)
+    was changed or removed.
+
     Parameters
     ----------
     args : argparse.Namespace
@@ -284,9 +287,21 @@ def _registry_check(args: argparse.Namespace) -> int:
         The exit code: 0 if there are no errors (warnings are allowed), else 1
     """
     from . import render
+    from .maintain.append_only import append_only_problems, read_registry_json
     from .maintain.check import check
 
-    report = check(_registry_root(args), args.ids or None)
+    root = _registry_root(args)
+    old = read_registry_json(Path(args.against)) if args.against else None
+    report = check(root, args.ids or None)
+    if old is not None:
+        try:
+            new = build(root, commit=None, built=date.today())
+        except RegistryError as e:
+            report.errors.append(
+                f"append-only rule not checked, as the checkout does not load: {e}"
+            )
+        else:
+            report.errors.extend(append_only_problems(old, new))
     render.print_report(report, render.console())
     return 0 if report.ok else 1
 
@@ -339,6 +354,68 @@ def _registry_add_version(args: argparse.Namespace) -> int:
         notes=args.notes,
     )
     print(f"Added {args.id} {version.id} ({version.format})")
+    return 0
+
+
+def _registry_upstream(args: argparse.Namespace) -> int:
+    """Run `odezoo registry upstream`: download upstream sources and compare their sha256
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code: 0 if every source gave its file's bytes, else 1
+    """
+    from . import http, render
+    from .maintain.append_only import read_registry_json
+    from .maintain.upstream import check_upstream, new_since, upstream_versions
+    from .registry import load_checkout
+
+    registry = load_checkout(_registry_root(args))
+    if args.new_since:
+        pairs = new_since(registry, read_registry_json(Path(args.new_since)))
+    else:
+        pairs = upstream_versions(registry)
+    results = check_upstream(pairs, http=http.client())
+    render.print_upstream(results, render.console())
+    return 1 if any(r.problem for r in results) else 0
+
+
+def _registry_add_url(args: argparse.Namespace) -> int:
+    """Run `odezoo registry add url`: add the file at a URL to a model, making it if need be
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
+    from . import http
+    from .maintain.url import add_url
+
+    o = add_url(
+        _registry_root(args),
+        args.url,
+        id=args.id,
+        license=args.license,
+        http=http.client(),
+        dry_run=args.dry_run,
+    )
+    verb = {"added model": "model", "added version": "version"}.get(o.action)
+    if verb is None:
+        print(f"Unchanged {o.id}: {o.detail}")
+    else:
+        prefix = "Would add" if args.dry_run else "Added"
+        detail = f"; {o.detail}" if o.detail else ""
+        print(f"{prefix} {verb} {o.id} ({o.version}){detail}")
     return 0
 
 
@@ -459,6 +536,19 @@ def build_parser() -> argparse.ArgumentParser:
     _, registry = _group(commands, "registry", "maintain a registry checkout")
     check = _command(registry, "check", "check models and their files", _registry_check)
     check.add_argument("ids", nargs="*", metavar="ID", help="only these models")
+    check.add_argument(
+        "--against",
+        metavar="REGISTRY_JSON",
+        help="also check that no version of this older registry.json was changed or removed",
+    )
+    upstream = _command(
+        registry, "upstream", "download upstream sources and compare sha256", _registry_upstream
+    )
+    upstream.add_argument(
+        "--new-since",
+        metavar="REGISTRY_JSON",
+        help="only the versions this older registry.json does not have",
+    )
     build_command = _command(registry, "build", "write registry.json", _registry_build)
     build_command.add_argument("-o", "--output", default="registry.json", metavar="PATH")
     _, add = _group(registry, "add", "add models or versions to the checkout")
@@ -468,6 +558,20 @@ def build_parser() -> argparse.ArgumentParser:
     version.add_argument("--derived-from", required=True, metavar="V", help="the version it edits")
     version.add_argument("--license", metavar="SPDX", help="default: that of --derived-from")
     version.add_argument("--notes", metavar="TEXT", help="what was changed, and why")
+    url = _command(add, "url", "add a file from GitHub, Zenodo, PMR or any URL", _registry_add_url)
+    url.add_argument(
+        "url", metavar="URL", help="the file; GitHub and PMR URLs are pinned to a commit"
+    )
+    url.add_argument("--id", required=True, metavar="ID", help="the model to add it to, or to make")
+    url.add_argument(
+        "--license",
+        default="unknown",
+        metavar="SPDX",
+        help="the file's licence (default: unknown); a copy is kept only if it allows one",
+    )
+    url.add_argument(
+        "--dry-run", action="store_true", help="say what would be added; write nothing"
+    )
     return parser
 
 

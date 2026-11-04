@@ -1,0 +1,27 @@
+id = "puglisi_bers_2001"
+name = "Puglisi–Bers 2001"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "ventricular myocyte"
+reviewed = false
+
+[paper]
+title = "LabHEART: an interactive computer model of rabbit ventricular myocyte ion channels and Ca transport"
+authors = ["Puglisi JL", "Bers DM"]
+journal = "Am J Physiol Cell Physiol"
+year = 2001
+doi = "10.1152/ajpcell.2001.281.6.C2049"
+
+[[versions]]
+id = "pmr-4dd9d11"
+format = "cellml"
+sha256 = "63e7179b631c3cdb10b3dfe2e7d11609461ba3d3e587d0f75b8f90ba156767dc"
+license = "CC-BY-3.0"
+file = "pmr-4dd9d11.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/puglisi_bers_2001"
+commit = "4dd9d11089352d0a58abedcb7890c5bccb95c182"
+path = "puglisi_bers_2001.cellml"

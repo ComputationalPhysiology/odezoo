@@ -1,0 +1,27 @@
+id = "noble_noble_1984"
+name = "Noble–Noble 1984"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "sinoatrial node"
+reviewed = true
+
+[paper]
+title = "A model of sino-atrial node electrical activity based on a modification of the DiFrancesco–Noble (1984) equations"
+authors = ["Noble D", "Noble SJ"]
+journal = "Proc R Soc Lond B"
+year = 1984
+doi = "10.1098/rspb.1984.0065"
+
+[[versions]]
+id = "pmr-40140a1"
+format = "cellml"
+sha256 = "0d30fee18694bf3e33c5640077472d815b284c7b8d33c437621c9f7c4d957ab0"
+license = "CC-BY-3.0"
+file = "pmr-40140a1.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/noble_noble_1984"
+commit = "40140a152b470300566e004aa3bedc3765a17110"
+path = "noble_noble_1984.cellml"

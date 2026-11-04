@@ -1,0 +1,27 @@
+id = "noble_1962"
+name = "Noble 1962"
+categories = ["electrophysiology"]
+species = "mammalian (sheep, dog data)"
+cell_type = "Purkinje fibre"
+reviewed = true
+
+[paper]
+title = "A modification of the Hodgkin–Huxley equations applicable to Purkinje fibre action and pace-maker potentials"
+authors = ["Noble D"]
+journal = "J Physiol"
+year = 1962
+doi = "10.1113/jphysiol.1962.sp006849"
+
+[[versions]]
+id = "pmr-c70f896"
+format = "cellml"
+sha256 = "916ab3387a34ec172b77d29a671c1aaf25fd02fdcfa33c9e8ed8ee048ac09e3a"
+license = "CC-BY-3.0"
+file = "pmr-c70f896.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/noble_1962"
+commit = "c70f8962407db00673f1fdcac9f35a2593781c17"
+path = "noble_1962.cellml"

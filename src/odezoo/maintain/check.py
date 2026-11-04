@@ -22,6 +22,11 @@ CELLML_NAMESPACES = (
     "http://www.cellml.org/cellml/2.0#",
 )
 CELLML_IMPORTS = {f"{{{ns}}}import" for ns in CELLML_NAMESPACES}
+# Licences whose one condition is that the copyright notice goes with every copy. The generic
+# text in LICENSES/ has no notice, so a model keeping such a copy has upstream's licence file,
+# with its copyright line, as models/<id>/LICENSE.
+NOTICE_LICENSES = frozenset({"MIT", "BSD-2-Clause", "BSD-3-Clause"})
+LICENSE_FILE = "LICENSE"
 
 
 @dataclass
@@ -131,8 +136,9 @@ class _Checker:
 
         Each copy must be there, have the recorded sha256, have its licence text in `LICENSES/`,
         and load: CellML as a self-contained model, `.ode` with gotranx if it is installed. A
-        file no version refers to is an error; a version whose licence is not its parent's is a
-        warning.
+        copy under a licence in `NOTICE_LICENSES` also needs the model's `LICENSE` file. A file
+        no version refers to, other than `LICENSE`, is an error; a version whose licence is not
+        its parent's is a warning.
 
         Parameters
         ----------
@@ -171,7 +177,15 @@ class _Checker:
                     gotranx.load_ode(path)
                 except Exception as e:  # any failure to load is the finding
                     errors.append(f"{label}: gotranx cannot load it ({type(e).__name__}: {e})")
-        referenced = {"model.toml", *(v.file for v in model.versions if v.file)}
+        notices = sorted(
+            {v.license for v in model.versions if v.file and v.license in NOTICE_LICENSES}
+        )
+        if notices and not (folder / LICENSE_FILE).is_file():
+            errors.append(
+                f"{prefix}/{LICENSE_FILE}: missing; a copy under {', '.join(notices)} must carry "
+                "its copyright notice, so put upstream's licence file here"
+            )
+        referenced = {"model.toml", LICENSE_FILE, *(v.file for v in model.versions if v.file)}
         for path in sorted(folder.iterdir()):
             if path.name not in referenced and not path.name.startswith("."):
                 errors.append(f"{prefix}/{path.name}: not referenced by any version")

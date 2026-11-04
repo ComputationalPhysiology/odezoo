@@ -21,8 +21,9 @@ from rich.text import Text
 from .errors import FetchError
 from .schema import Model, Paper
 
-if TYPE_CHECKING:  # only for the type hint; printing a report needs nothing from check
+if TYPE_CHECKING:  # only for the type hints; printing needs nothing from these modules
     from .maintain.check import Report
+    from .maintain.upstream import Checked
 
 
 def console(*, stderr: bool = False) -> Console:
@@ -254,3 +255,31 @@ def print_report(report: Report, out: Console) -> None:
         f"{report.checked} models checked, {len(report.errors)} errors, "
         f"{len(report.warnings)} warnings"
     )
+
+
+def print_upstream(results: Sequence[Checked], out: Console) -> None:
+    """Print what `odezoo registry upstream` found: a table, failures first, then the counts
+
+    Parameters
+    ----------
+    results : Sequence[Checked]
+        One result per version that was checked
+    out : Console
+        Where to print
+    """
+    if not results:
+        out.print("No upstream versions to check.")
+        return
+    ok, fail, _ = symbols(out)
+    table = Table()
+    table.add_column("", no_wrap=True)
+    table.add_column("Model", no_wrap=True)
+    table.add_column("Version", no_wrap=True)
+    table.add_column("Problem")
+    table.add_column("URL", overflow="fold")
+    for r in sorted(results, key=lambda r: r.problem is None):
+        mark = Text(ok, style="green") if r.problem is None else Text(fail, style="bold red")
+        table.add_row(mark, Text(r.model), Text(r.version), Text(r.problem or ""), _link(r.url))
+    out.print(table)
+    failed = sum(r.problem is not None for r in results)
+    out.print(f"{len(results)} checked, {failed} failed")

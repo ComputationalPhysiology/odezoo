@@ -1,0 +1,27 @@
+id = "hilgemann_noble_1987"
+name = "Hilgemann–Noble 1987"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "atrial myocyte"
+reviewed = true
+
+[paper]
+title = "Excitation-contraction coupling and extracellular calcium transients in rabbit atrium: reconstruction of basic cellular mechanisms"
+authors = ["Hilgemann DW", "Noble D"]
+journal = "Proc R Soc Lond B"
+year = 1987
+doi = "10.1098/rspb.1987.0015"
+
+[[versions]]
+id = "pmr-cf54a3e"
+format = "cellml"
+sha256 = "7163cb0755044fd1802120e7501d6ad07e67aec88d79ca47cf7a331239145240"
+license = "CC-BY-3.0"
+file = "pmr-cf54a3e.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/hilgemann_noble_1987"
+commit = "cf54a3e5e327900d267b3b8bca0591702d1435c2"
+path = "hilgemann_noble_1987.cellml"

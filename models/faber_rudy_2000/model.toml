@@ -1,0 +1,27 @@
+id = "faber_rudy_2000"
+name = "Faber–Rudy 2000"
+categories = ["electrophysiology"]
+species = "guinea pig"
+cell_type = "ventricular myocardium"
+reviewed = true
+
+[paper]
+title = "Action potential and contractility changes in [Na+]i overloaded cardiac myocytes: a simulation study"
+authors = ["Faber GM", "Rudy Y"]
+journal = "Biophys J"
+year = 2000
+doi = "10.1016/S0006-3495(00)76783-X"
+
+[[versions]]
+id = "pmr-e39995f"
+format = "cellml"
+sha256 = "09b2b6f110d2d473a719a81595804753ad19ce43593f9b4642482b2dfaa41066"
+license = "CC-BY-3.0"
+file = "pmr-e39995f.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/faber_rudy_2000"
+commit = "e39995f4f7dffc759448c516cd54359ea9fb7757"
+path = "faber_rudy_modified_version_2000.cellml"

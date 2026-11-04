@@ -1,0 +1,27 @@
+id = "winslow_1999"
+name = "Winslow et al. 1999"
+categories = ["electrophysiology"]
+species = "canine"
+cell_type = "ventricular myocardium, midmyocardial (normal, non-failing); S&D Table 1 says atrial"
+reviewed = true
+
+[paper]
+title = "Mechanisms of altered excitation-contraction coupling in canine tachycardia-induced heart failure, II: model studies"
+authors = ["Winslow RL", "Rice J", "Jafri S", "Marbán E", "O'Rourke B"]
+journal = "Circ Res"
+year = 1999
+doi = "10.1161/01.RES.84.5.571"
+
+[[versions]]
+id = "pmr-0e3b69f"
+format = "cellml"
+sha256 = "0713cd858138bc96a80ee62dccc2086fe05ca452b732715799c5196f134e5bed"
+license = "CC-BY-3.0"
+file = "pmr-0e3b69f.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/winslow_rice_jafri_marban_ororke_1999"
+commit = "0e3b69fc1adb32cf77cf96c4882a3ecdeb56c194"
+path = "winslow_rice_jafri_marban_ororke_1999.cellml"

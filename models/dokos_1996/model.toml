@@ -1,0 +1,28 @@
+id = "dokos_1996"
+name = "Dokos et al. 1996"
+categories = ["electrophysiology"]
+species = "rabbit"
+cell_type = "sinoatrial node"
+reviewed = true
+
+[paper]
+title = "Ion currents underlying sinoatrial node pacemaker activity: a new single cell mathematical model"
+authors = ["Dokos S", "Celler B", "Lovell N"]
+journal = "J Theor Biol"
+year = 1996
+doi = "10.1006/jtbi.1996.0129"
+pubmed = 8869126
+
+[[versions]]
+id = "pmr-58a19ca"
+format = "cellml"
+sha256 = "2961258a66ca07928b1a946b1dd8d5f43cb8d3839ea305d83323821186885a1a"
+license = "CC-BY-3.0"
+file = "pmr-58a19ca.cellml"
+added = 2026-11-03
+
+[versions.source]
+type = "pmr"
+workspace = "https://models.physiomeproject.org/workspace/dokos_celler_lovell_1996"
+commit = "58a19cab7f0b07a8fee3e0d8d8cca1059b8909b9"
+path = "dokos_celler_lovell_1996.cellml"
