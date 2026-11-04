@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -132,7 +132,27 @@ def print_models(models: Sequence[Model], out: Console, *, pager: bool = True) -
     out.print(table)
 
 
-def print_model(model: Model, out: Console) -> None:
+def print_values(field: str, counts: Mapping[str, int], out: Console) -> None:
+    """Print each value of a field and how many models have it
+
+    Parameters
+    ----------
+    field : str
+        The field, such as `species`
+    counts : Mapping[str, int]
+        Each value and its number of models, in the order to print them
+    out : Console
+        Where to print
+    """
+    table = Table()
+    table.add_column(field.replace("_", " ").capitalize(), style="bold cyan")
+    table.add_column("Models", justify="right")
+    for value, count in counts.items():
+        table.add_row(Text(value), str(count))
+    out.print(table)
+
+
+def print_model(model: Model, out: Console, *, family: Sequence[str] = ()) -> None:
     """Print one model: its details, then a table of its versions
 
     Parameters
@@ -141,11 +161,14 @@ def print_model(model: Model, out: Console) -> None:
         The model
     out : Console
         Where to print
+    family : Sequence[str], optional
+        The ids of the other models in its family, by default none
     """
     out.print(Text.assemble((model.name, "bold"), f"  ({model.id})"))
     rows: list[tuple[str, Text | str]] = []
     if model.family:
-        rows.append(("Family", Text(model.family)))
+        others = f" (also {', '.join(family)})" if family else ""
+        rows.append(("Family", Text(model.family + others)))
     rows.append(("Paper", Text(_citation(model.paper))))
     if model.paper.doi:
         rows.append(("DOI", _link(f"https://doi.org/{model.paper.doi}")))
