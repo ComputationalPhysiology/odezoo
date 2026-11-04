@@ -1,6 +1,7 @@
+import pytest
 from search_models import ALL, br, ids, tt, wk
 
-from odezoo.search import search
+from odezoo.search import search, values
 
 
 def test_no_filters_returns_all_sorted():
@@ -39,3 +40,32 @@ def test_format():
 
 def test_reviewed():
     assert ids(search(ALL, reviewed=False)) == ["tentusscher_2006_epi"]
+
+
+def test_family():
+    assert ids(search(ALL, family="tentusscher_2006")) == ["tentusscher_2006_epi"]
+    assert search(ALL, family=["nobody"]) == []
+
+
+def test_values_are_counted_most_common_first():
+    assert values(ALL, "keyword") == {"cardiac": 2, "circulation": 1, "ventricular myocyte": 1}
+    assert values(ALL, "category") == {
+        "electrophysiology": 2,
+        "calcium_dynamics": 1,
+        "cardiovascular_circulation": 1,
+    }
+    assert values(ALL, "format") == {"cellml": 2, "ode": 2}
+
+
+def test_values_leave_out_models_without_one():
+    assert values(ALL, "species") == {"canine": 1, "human": 1}
+    assert values(ALL, "family") == {"tentusscher_2006": 1}
+    assert values(ALL, "cell_type") == {
+        "ventricular myocyte": 1,
+        "ventricular myocyte, epicardial": 1,
+    }
+
+
+def test_values_of_an_unknown_field():
+    with pytest.raises(ValueError, match="species"):
+        values(ALL, "colour")

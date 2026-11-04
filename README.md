@@ -20,6 +20,7 @@ python3 -m pip install git+https://github.com/ComputationalPhysiology/odezoo
 ```
 odezoo list                                    # every model; takes the same filters as search
 odezoo search --category electrophysiology     # find models; also by text, --keyword, --species
+odezoo values species                          # each species and its number of models
 odezoo info beeler_reuter_1977                 # paper, DOI, versions, licences, sources
 odezoo fetch beeler_reuter_1977 -o models/     # writes models/beeler_reuter_1977.cellml
 ```
@@ -28,6 +29,8 @@ odezoo fetch beeler_reuter_1977 -o models/     # writes models/beeler_reuter_197
 fetches every CellML model. `--format` picks the newest version in a format, `--version` a given
 version, and `--force` overwrites a different file that is already there. A table of models
 taller than the terminal opens in your pager (`$PAGER`, else `less`); `--no-pager` turns that off.
+`odezoo values` also counts categories, keywords, families, formats and cell types, and takes the
+same filters, so `odezoo values family --species human` lists the families of human models.
 
 Every file is checked against the sha256 in the registry. It is taken from the cache if it is
 there, otherwise from this repository's copy on GitHub, otherwise from where its authors keep it
@@ -39,6 +42,7 @@ there, otherwise from this repository's copy on GitHub, otherwise from where its
 import odezoo
 
 odezoo.search("ten tusscher", category="electrophysiology", format="cellml")
+odezoo.values("species")  # {"human": 14, "guinea pig": 8, ...}
 model = odezoo.model("beeler_reuter_1977")  # paper, keywords, versions, ...
 path = odezoo.get("beeler_reuter_1977")  # the file in the cache
 path = odezoo.get("beeler_reuter_1977", dest=".")  # copied to ./beeler_reuter_1977.cellml

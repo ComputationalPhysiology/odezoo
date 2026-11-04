@@ -1,7 +1,7 @@
 """odezoo: a curated registry of ODE models, fetched and verified by sha256"""
 
 from ._version import __version__
-from .api import get, model, models, search
+from .api import get, model, models, search, values
 from .errors import (
     FetchError,
     ModelNotFound,
@@ -28,4 +28,5 @@ __all__ = [
     "model",
     "models",
     "search",
+    "values",
 ]
