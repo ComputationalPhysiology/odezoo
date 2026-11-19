@@ -1,7 +1,8 @@
 id = "wang_sobie_2008"
 name = "Wang–Sobie 2008"
+description = "The cell is from a neonatal mouse, on day 1."
 categories = ["electrophysiology"]
-species = "mouse (neonatal, day 1)"
+species = "mouse"
 cell_type = "ventricular myocyte"
 reviewed = true
 

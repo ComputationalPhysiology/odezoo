@@ -28,6 +28,8 @@ words:
   - setattr
   - setitem
   - tentusscher
+  - fitzhugh
+  - nagumo
   - panfilov
   - alternans
   - khwj
