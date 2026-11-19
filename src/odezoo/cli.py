@@ -23,6 +23,7 @@ from .errors import OdezooError, RegistryError
 from .registry import ENV_VAR as REGISTRY_ENV_VAR
 from .registry import build, resolve_commit
 from .schema import CATEGORIES, FORMATS, model_to_dict
+from .search import VALUE_FIELDS
 
 Handler = Callable[[argparse.Namespace], int]
 
@@ -102,6 +103,7 @@ def _search(args: argparse.Namespace) -> int:
         category=args.category,
         keyword=args.keyword,
         species=args.species,
+        family=args.family,
         format=args.format,
         reviewed=args.reviewed,
         registry=args.registry,
@@ -119,6 +121,41 @@ def _search(args: argparse.Namespace) -> int:
         render.console(stderr=True).print("No models match.")
         return 0
     render.print_models(found, render.console(), pager=not args.no_pager)
+    return 0
+
+
+def _values(args: argparse.Namespace) -> int:
+    """Run `odezoo values`: print each value of a field and how many models have it
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        The parsed command line
+
+    Returns
+    -------
+    int
+        The exit code, 0
+    """
+    counts = api.values(
+        args.field,
+        category=args.category,
+        keyword=args.keyword,
+        species=args.species,
+        family=args.family,
+        format=args.format,
+        reviewed=args.reviewed,
+        registry=args.registry,
+    )
+    if args.json:
+        print(json.dumps(counts, indent=2))
+        return 0
+    from . import render
+
+    if not counts:
+        render.console(stderr=True).print("No models match.")
+        return 0
+    render.print_values(args.field, counts, render.console())
     return 0
 
 
@@ -141,7 +178,9 @@ def _info(args: argparse.Namespace) -> int:
         return 0
     from . import render
 
-    render.print_model(model, render.console())
+    relatives = api.search(family=model.family, registry=args.registry) if model.family else []
+    others = [m.id for m in relatives if m.id != model.id]
+    render.print_model(model, render.console(), family=others)
     return 0
 
 
@@ -419,8 +458,8 @@ def _registry_add_url(args: argparse.Namespace) -> int:
     return 0
 
 
-def _filters(parser: argparse.ArgumentParser) -> None:
-    """Add the filters and output options that `list` and `search` share
+def _filter_options(parser: argparse.ArgumentParser) -> None:
+    """Add the filters that `list`, `search` and `values` share
 
     Parameters
     ----------
@@ -432,10 +471,22 @@ def _filters(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--keyword", action="append", help="repeat for any of several")
     parser.add_argument("--species", action="append", help="repeat for any of several")
+    parser.add_argument("--family", action="append", help="repeat for any of several")
     parser.add_argument("--format", choices=list(FORMATS))
     reviewed = parser.add_mutually_exclusive_group()
     reviewed.add_argument("--reviewed", dest="reviewed", action="store_const", const=True)
     reviewed.add_argument("--unreviewed", dest="reviewed", action="store_const", const=False)
+
+
+def _filters(parser: argparse.ArgumentParser) -> None:
+    """Add the filters and output options that `list` and `search` share
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        The command's parser
+    """
+    _filter_options(parser)
     output = parser.add_mutually_exclusive_group()
     output.add_argument("--ids", action="store_true", help="print only the ids, one per line")
     output.add_argument("--json", action="store_true", help="print the models as JSON")
@@ -494,7 +545,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="odezoo",
         description="Search the odezoo registry of ODE models and fetch their files.",
-        epilog="New here? Run `odezoo list` to see every model.",
+        epilog="New here? Run `odezoo list` to see every model, or `odezoo values species`.",
         **PARSER_OPTIONS,
     )
     parser.add_argument("--version", action="version", version=f"odezoo {__version__}")
@@ -511,6 +562,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     search.add_argument("text", nargs="*", help="words that must all occur in a model's details")
     _filters(search)
+    values = _command(
+        commands, "values", "count the models with each species, category, family, …", _values
+    )
+    values.add_argument(
+        "field", choices=VALUE_FIELDS, metavar="FIELD", help=", ".join(VALUE_FIELDS)
+    )
+    _filter_options(values)
+    values.add_argument("--json", action="store_true", help="print the counts as JSON")
 
     info = _command(commands, "info", "show a model's paper, versions and sources", _info)
     info.add_argument("id")

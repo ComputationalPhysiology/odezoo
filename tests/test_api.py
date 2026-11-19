@@ -39,3 +39,8 @@ def test_get_without_dest_needs_a_usable_cache(remote_checkout, tmp_path):
     (tmp_path / "cachefile").write_text("x")
     with pytest.raises(OdezooError, match="cache"):
         odezoo.get("beeler_reuter_1977", cache_dir=tmp_path / "cachefile", registry=remote_checkout)
+
+
+def test_values(checkout):
+    assert odezoo.values("species", registry=checkout) == {"canine": 1}
+    assert odezoo.values("species", species="human", registry=checkout) == {}

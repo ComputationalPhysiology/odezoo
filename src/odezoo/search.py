@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Iterable, Sequence
 
 from .schema import Model, normalize_keyword
+
+# The fields `values` counts, as `list` and `search` filter by them (except `cell_type`)
+VALUE_FIELDS = ("category", "keyword", "species", "family", "format", "cell_type")
 
 
 def _as_set(value: str | Sequence[str] | None, normalize=str.lower) -> set[str] | None:
@@ -62,6 +66,7 @@ def search(
     category: str | Sequence[str] | None = None,
     keyword: str | Sequence[str] | None = None,
     species: str | Sequence[str] | None = None,
+    family: str | Sequence[str] | None = None,
     format: str | None = None,
     reviewed: bool | None = None,
 ) -> list[Model]:
@@ -83,6 +88,8 @@ def search(
         Keywords of which a model must have one, compared as `normalize_keyword` writes them
     species : str | Sequence[str], optional
         Species, in any case, one of which must be the model's
+    family : str | Sequence[str], optional
+        Families, one of which must be the model's
     format : str, optional
         A format, `cellml` or `ode`, that the model must have a version in
     reviewed : bool, optional
@@ -97,6 +104,7 @@ def search(
     categories = _as_set(category, normalize=str)
     keywords = _as_set(keyword, normalize=normalize_keyword)
     species_set = _as_set(species)
+    families = _as_set(family, normalize=str)
 
     def matches(model: Model) -> bool:
         """Tell whether `model` has every word and passes every filter
@@ -117,8 +125,62 @@ def search(
             and (categories is None or bool(categories & set(model.categories)))
             and (keywords is None or bool(keywords & set(model.keywords)))
             and (species_set is None or (model.species or "") in species_set)
+            and (families is None or (model.family or "") in families)
             and (format is None or format in model.formats)
             and (reviewed is None or model.reviewed == reviewed)
         )
 
     return sorted((m for m in models if matches(m)), key=lambda m: m.id)
+
+
+def _field_values(model: Model, field: str) -> Iterable[str]:
+    """Give the values a model has for one of `VALUE_FIELDS`
+
+    Parameters
+    ----------
+    model : Model
+        The model
+    field : str
+        One of `VALUE_FIELDS`
+
+    Returns
+    -------
+    Iterable[str]
+        Its values: none, one, or several for categories, keywords and formats
+    """
+    if field == "category":
+        return model.categories
+    if field == "keyword":
+        return model.keywords
+    if field == "format":
+        return model.formats
+    value = {"species": model.species, "family": model.family, "cell_type": model.cell_type}[field]
+    return [value] if value else []
+
+
+def values(models: Iterable[Model], field: str) -> dict[str, int]:
+    """Count how many models have each value of a field
+
+    Parameters
+    ----------
+    models : Iterable[Model]
+        The models to count
+    field : str
+        One of `VALUE_FIELDS`: `category`, `keyword`, `species`, `family`, `format` or
+        `cell_type`
+
+    Returns
+    -------
+    dict[str, int]
+        Each value and the number of models with it, the most common first, then
+        alphabetically; models without a value are left out
+
+    Raises
+    ------
+    ValueError
+        If `field` is not one of `VALUE_FIELDS`
+    """
+    if field not in VALUE_FIELDS:
+        raise ValueError(f"{field!r} is not one of {', '.join(VALUE_FIELDS)}")
+    counts = Counter(v for m in models for v in set(_field_values(m, field)))
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))

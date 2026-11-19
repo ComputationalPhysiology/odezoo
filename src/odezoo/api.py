@@ -14,6 +14,7 @@ from .registry import load as load_registry
 from .resolve import choose_version
 from .schema import Model
 from .search import search as search_models
+from .search import values as count_values
 
 
 def models(*, registry: Path | str | None = None) -> list[Model]:
@@ -62,6 +63,7 @@ def search(
     category: str | Sequence[str] | None = None,
     keyword: str | Sequence[str] | None = None,
     species: str | Sequence[str] | None = None,
+    family: str | Sequence[str] | None = None,
     format: str | None = None,
     reviewed: bool | None = None,
     registry: Path | str | None = None,
@@ -82,6 +84,8 @@ def search(
         Keywords of which a model must have one
     species : str | Sequence[str], optional
         Species, in any case, one of which must be the model's
+    family : str | Sequence[str], optional
+        Families, one of which must be the model's
     format : str, optional
         A format, `cellml` or `ode`, that the model must have a version in
     reviewed : bool, optional
@@ -100,9 +104,71 @@ def search(
         category=category,
         keyword=keyword,
         species=species,
+        family=family,
         format=format,
         reviewed=reviewed,
     )
+
+
+def values(
+    field: str,
+    text: str = "",
+    *,
+    category: str | Sequence[str] | None = None,
+    keyword: str | Sequence[str] | None = None,
+    species: str | Sequence[str] | None = None,
+    family: str | Sequence[str] | None = None,
+    format: str | None = None,
+    reviewed: bool | None = None,
+    registry: Path | str | None = None,
+) -> dict[str, int]:
+    """Count how many models have each value of a field, such as each species
+
+    The models counted are those `search` finds with the same text and filters.
+
+    Parameters
+    ----------
+    field : str
+        `category`, `keyword`, `species`, `family`, `format` or `cell_type`
+    text : str, optional
+        Words that must all occur, in any case; by default none
+    category : str | Sequence[str], optional
+        Categories, from `odezoo.schema.CATEGORIES`, of which a model must have one
+    keyword : str | Sequence[str], optional
+        Keywords of which a model must have one
+    species : str | Sequence[str], optional
+        Species, in any case, one of which must be the model's
+    family : str | Sequence[str], optional
+        Families, one of which must be the model's
+    format : str, optional
+        A format, `cellml` or `ode`, that the model must have a version in
+    reviewed : bool, optional
+        True for reviewed models only, False for unreviewed ones only
+    registry : Path | str, optional
+        A registry checkout to use instead of $ODEZOO_REGISTRY or the bundled registry
+
+    Returns
+    -------
+    dict[str, int]
+        Each value and the number of models with it, the most common first, then
+        alphabetically; models without a value are left out
+
+    Raises
+    ------
+    ValueError
+        If `field` is not one of those above
+    """
+    found = search(
+        text,
+        category=category,
+        keyword=keyword,
+        species=species,
+        family=family,
+        format=format,
+        reviewed=reviewed,
+        registry=registry,
+    )
+    return count_values(found, field)
 
 
 def get(
