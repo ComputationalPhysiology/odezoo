@@ -48,3 +48,20 @@ def test_seed_models():
     assert "Marbán E" in models["winslow_1999"].paper.authors
     assert models["noble_1998"].paper.pubmed == 9487284
     assert models["mcallister_1975"].species == "unknown"  # the survey records a note instead
+
+
+def test_species_are_plain_names():
+    # A note in the species ("mouse (neonatal, day 1)") hides the model from --species mouse.
+    models = load_checkout(REPO).models
+    assert {m.species for m in models.values()} <= {
+        None,
+        "human",
+        "guinea pig",
+        "rabbit",
+        "canine",
+        "rat",
+        "mouse",
+        "mammalian",
+        "unknown",
+    }
+    assert models["fitzhugh_nagumo_1961"].species is None  # an abstract model, of no species

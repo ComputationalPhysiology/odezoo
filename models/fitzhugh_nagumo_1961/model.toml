@@ -1,7 +1,7 @@
 id = "fitzhugh_nagumo_1961"
 name = "FitzHugh–Nagumo 1961"
+description = "A dimensionless, abstract model of an excitable membrane, of no particular species."
 categories = ["electrophysiology"]
-species = "generic (dimensionless)"
 cell_type = "nerve membrane (cubic FitzHugh–Nagumo form, dimensionless)"
 reviewed = true
 
