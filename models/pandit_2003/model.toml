@@ -1,8 +1,9 @@
 id = "pandit_2003"
 name = "Pandit et al. 2003 (control rat RV cell, Diabetes = 0)"
+description = "The file models the paper's control right-ventricular cell."
 categories = ["electrophysiology"]
 species = "rat"
-cell_type = "ventricular myocyte (control right-ventricular cell of the paper; S&D Table 1: rat LV, type-I diabetes)"
+cell_type = "ventricular myocyte"
 reviewed = true
 
 [paper]

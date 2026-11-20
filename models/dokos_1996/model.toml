@@ -2,7 +2,7 @@ id = "dokos_1996"
 name = "Dokos et al. 1996"
 categories = ["electrophysiology"]
 species = "rabbit"
-cell_type = "sinoatrial node"
+cell_type = "sinoatrial node cell"
 reviewed = true
 
 [paper]

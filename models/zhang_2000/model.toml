@@ -1,8 +1,9 @@
 id = "zhang_2000"
 name = "Zhang et al. 2000"
+description = "The file's default, `membrane.dCell = 0`, is a central cell, which does not beat; set `dCell = 1` for the peripheral cell."
 categories = ["electrophysiology"]
 species = "rabbit"
-cell_type = "sinoatrial node, periphery (membrane.dCell = 1; the file default 0 = centre does not beat, see NOTES.md)"
+cell_type = "sinoatrial node cell, peripheral"
 reviewed = true
 
 [paper]

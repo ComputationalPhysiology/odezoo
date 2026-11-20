@@ -2,7 +2,7 @@ id = "noble_noble_1984"
 name = "Noble–Noble 1984"
 categories = ["electrophysiology"]
 species = "rabbit"
-cell_type = "sinoatrial node"
+cell_type = "sinoatrial node cell"
 reviewed = true
 
 [paper]

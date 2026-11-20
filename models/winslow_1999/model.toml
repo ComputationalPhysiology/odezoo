@@ -1,8 +1,9 @@
 id = "winslow_1999"
 name = "Winslow et al. 1999"
+description = "A normal, non-failing cell."
 categories = ["electrophysiology"]
 species = "canine"
-cell_type = "ventricular myocardium, midmyocardial (normal, non-failing); S&D Table 1 says atrial"
+cell_type = "ventricular myocyte, midmyocardial"
 reviewed = true
 
 [paper]

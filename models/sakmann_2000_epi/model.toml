@@ -3,7 +3,7 @@ name = "Sakmann et al. 2000, epicardial"
 family = "sakmann_2000"
 categories = ["electrophysiology"]
 species = "guinea pig"
-cell_type = "ventricular myocardium, epicardial"
+cell_type = "ventricular myocyte, epicardial"
 reviewed = true
 
 [paper]

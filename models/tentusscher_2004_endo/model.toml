@@ -3,7 +3,7 @@ name = "ten Tusscher et al. 2004, endocardial"
 family = "tentusscher_2004"
 categories = ["electrophysiology"]
 species = "human"
-cell_type = "ventricular myocardium, endocardial"
+cell_type = "ventricular myocyte, endocardial"
 reviewed = true
 
 [paper]

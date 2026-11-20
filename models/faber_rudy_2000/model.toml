@@ -2,7 +2,7 @@ id = "faber_rudy_2000"
 name = "Faber–Rudy 2000"
 categories = ["electrophysiology"]
 species = "guinea pig"
-cell_type = "ventricular myocardium"
+cell_type = "ventricular myocyte"
 reviewed = true
 
 [paper]

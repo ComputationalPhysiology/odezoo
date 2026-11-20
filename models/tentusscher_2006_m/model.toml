@@ -3,7 +3,7 @@ name = "ten Tusscher–Panfilov 2006, M cell"
 family = "tentusscher_2006"
 categories = ["electrophysiology"]
 species = "human"
-cell_type = "ventricular myocardium, midmyocardial (M cell)"
+cell_type = "ventricular myocyte, midmyocardial"
 reviewed = true
 
 [paper]

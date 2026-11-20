@@ -2,7 +2,7 @@ id = "fox_2002"
 name = "Fox et al. 2002"
 categories = ["electrophysiology"]
 species = "canine"
-cell_type = "ventricular myocardium"
+cell_type = "ventricular myocyte"
 reviewed = true
 
 [paper]

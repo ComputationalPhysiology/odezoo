@@ -2,7 +2,7 @@ id = "noble_1998"
 name = "Noble et al. 1998"
 categories = ["electrophysiology"]
 species = "guinea pig"
-cell_type = "ventricular myocardium"
+cell_type = "ventricular myocyte"
 reviewed = true
 
 [paper]
