@@ -1,8 +1,9 @@
 id = "tworld"
 name = "T-World (Tomek et al. 2025), endocardial"
+description = "The file's `celltype` parameter selects the cell type; its default, 0, is endocardial."
 categories = ["electrophysiology"]
 species = "human"
-cell_type = "ventricular myocardium, endocardial (celltype = 0)"
+cell_type = "ventricular myocyte, endocardial"
 reviewed = true
 
 [paper]

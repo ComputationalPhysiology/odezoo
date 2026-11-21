@@ -1,8 +1,9 @@
 id = "demir_1999"
 name = "Demir et al. 1999"
+description = "Includes parasympathetic (acetylcholine) modulation; the file sets ACh = 0."
 categories = ["electrophysiology"]
 species = "rabbit"
-cell_type = "sinoatrial node (with parasympathetic modulation; ACh = 0)"
+cell_type = "sinoatrial node cell"
 reviewed = true
 
 [paper]

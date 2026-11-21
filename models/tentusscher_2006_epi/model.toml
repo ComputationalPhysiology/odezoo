@@ -3,7 +3,7 @@ name = "ten Tusscher–Panfilov 2006, epicardial"
 family = "tentusscher_2006"
 categories = ["electrophysiology"]
 species = "human"
-cell_type = "ventricular myocardium, epicardial"
+cell_type = "ventricular myocyte, epicardial"
 reviewed = true
 
 [paper]

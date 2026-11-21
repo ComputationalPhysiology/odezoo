@@ -1,8 +1,9 @@
 id = "grandi_2010"
 name = "Grandi-Pasqualini-Bers 2010, epicardial"
+description = "The file's `epi` parameter selects the cell type; its default, 1, is epicardial."
 categories = ["electrophysiology"]
 species = "human"
-cell_type = "ventricular myocardium, epicardial (epi = 1, the default of the file)"
+cell_type = "ventricular myocyte, epicardial"
 reviewed = true
 
 [paper]

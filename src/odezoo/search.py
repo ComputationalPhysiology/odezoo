@@ -173,7 +173,7 @@ def values(models: Iterable[Model], field: str) -> dict[str, int]:
     -------
     dict[str, int]
         Each value and the number of models with it, the most common first, then
-        alphabetically; models without a value are left out
+        alphabetically in any case; models without a value are left out
 
     Raises
     ------
@@ -183,4 +183,4 @@ def values(models: Iterable[Model], field: str) -> dict[str, int]:
     if field not in VALUE_FIELDS:
         raise ValueError(f"{field!r} is not one of {', '.join(VALUE_FIELDS)}")
     counts = Counter(v for m in models for v in set(_field_values(m, field)))
-    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0].casefold())))

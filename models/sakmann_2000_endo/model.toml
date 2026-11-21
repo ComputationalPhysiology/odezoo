@@ -3,7 +3,7 @@ name = "Sakmann et al. 2000, endocardial"
 family = "sakmann_2000"
 categories = ["electrophysiology"]
 species = "guinea pig"
-cell_type = "ventricular myocardium, endocardial"
+cell_type = "ventricular myocyte, endocardial"
 reviewed = true
 
 [paper]

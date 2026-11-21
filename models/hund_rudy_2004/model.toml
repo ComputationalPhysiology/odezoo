@@ -2,7 +2,7 @@ id = "hund_rudy_2004"
 name = "Hund–Rudy 2004"
 categories = ["electrophysiology"]
 species = "canine"
-cell_type = "ventricular myocardium, epicardial"
+cell_type = "ventricular myocyte, epicardial"
 reviewed = true
 
 [paper]

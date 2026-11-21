@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 from search_models import ALL, br, ids, tt, wk
 
@@ -69,3 +71,9 @@ def test_values_leave_out_models_without_one():
 def test_values_of_an_unknown_field():
     with pytest.raises(ValueError, match="species"):
         values(ALL, "colour")
+
+
+def test_values_with_the_same_count_ignore_case():
+    purkinje = replace(br, id="p", cell_type="Purkinje fibre")
+    atrial = replace(br, id="a", cell_type="atrial myocyte")
+    assert list(values([purkinje, atrial], "cell_type")) == ["atrial myocyte", "Purkinje fibre"]

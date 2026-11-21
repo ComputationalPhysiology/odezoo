@@ -1,8 +1,9 @@
 id = "pandit_2001"
 name = "Pandit et al. 2001, epicardial cell"
+description = "A cell from the left ventricle."
 categories = ["electrophysiology"]
 species = "rat"
-cell_type = "left ventricular myocyte, epicardial"
+cell_type = "ventricular myocyte, epicardial"
 reviewed = true
 
 [paper]

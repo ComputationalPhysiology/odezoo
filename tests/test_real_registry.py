@@ -65,3 +65,21 @@ def test_species_are_plain_names():
         "unknown",
     }
     assert models["fitzhugh_nagumo_1961"].species is None  # an abstract model, of no species
+
+
+def test_cell_types_are_plain_names():
+    # Notes, such as which parameter value selects the cell, belong in the description.
+    models = load_checkout(REPO).models
+    assert {m.cell_type for m in models.values()} == {
+        "ventricular myocyte",
+        "ventricular myocyte, apex",
+        "ventricular myocyte, endocardial",
+        "ventricular myocyte, epicardial",
+        "ventricular myocyte, midmyocardial",
+        "atrial myocyte",
+        "sinoatrial node cell",
+        "sinoatrial node cell, peripheral",
+        "Purkinje fibre",
+        "nerve membrane",
+    }
+    assert not any("S&D" in (m.description or "") for m in models.values())

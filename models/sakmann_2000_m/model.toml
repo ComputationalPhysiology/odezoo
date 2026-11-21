@@ -3,7 +3,7 @@ name = "Sakmann et al. 2000, midmyocardial"
 family = "sakmann_2000"
 categories = ["electrophysiology"]
 species = "guinea pig"
-cell_type = "ventricular myocardium, midmyocardial (M cell)"
+cell_type = "ventricular myocyte, midmyocardial"
 reviewed = true
 
 [paper]

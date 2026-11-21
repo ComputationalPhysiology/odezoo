@@ -2,7 +2,7 @@ id = "demir_1994"
 name = "Demir et al. 1994"
 categories = ["electrophysiology"]
 species = "rabbit"
-cell_type = "sinoatrial node"
+cell_type = "sinoatrial node cell"
 reviewed = true
 
 [paper]
