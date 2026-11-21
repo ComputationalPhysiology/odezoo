@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { FACETS, facetCounts, matches } from "./search.mjs";
+import { FACETS, facetCounts, matches, status } from "./search.mjs";
 
 // Three models like tests/search_models.py
 const br = {
@@ -55,4 +55,21 @@ test("counts are most common first, and models without a value are left out", ()
 test("review status counts as yes and no", () => {
   assert.deepEqual([...facetCounts(ALL, {}, "reviewed")], [["yes", 2], ["no", 1]]);
   assert.deepEqual(ids(ALL.filter((m) => matches(m, { reviewed: new Set(["no"]) }))), [tt.id]);
+});
+
+test("the status line counts what is shown, or says nothing matches", () => {
+  assert.equal(status({ shown: 3, total: 41, text: "", search: "ready" }), "3 of 41 models");
+  assert.equal(status({ shown: 0, total: 41, text: "xyzzy", search: "ready" }), "No models match.");
+});
+
+test("text typed before the search has loaded is not silently ignored", () => {
+  assert.equal(status({ shown: 41, total: 41, text: "xyzzy", search: "loading" }), "Loading the search…");
+  assert.equal(status({ shown: 41, total: 41, text: "", search: "loading" }), "41 of 41 models");
+});
+
+test("a search that could not load says so, and the filters still work", () => {
+  assert.equal(
+    status({ shown: 5, total: 41, text: "noble", search: "failed" }),
+    "The text search could not be loaded; the filters still work. 5 of 41 models",
+  );
 });

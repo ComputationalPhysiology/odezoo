@@ -48,6 +48,17 @@ export function facetCounts(models, selected, facet) {
   return new Map([...counts].sort(byCount));
 }
 
+// The line above the results. `search` is "loading", "ready" or "failed": text typed before
+// MiniSearch has loaded, or when it cannot, must not look like a search that matched everything.
+export function status({ shown, total, text, search }) {
+  const counted = shown === 0 ? "No models match." : `${shown} of ${total} models`;
+  if (search === "failed") {
+    return `The text search could not be loaded; the filters still work. ${counted}`;
+  }
+  if (search === "loading" && text.trim()) return "Loading the search…";
+  return counted;
+}
+
 const STYLE = `
 .odezoo-search input[type="search"] { width: 100%; padding: 0.5em; font-size: 1em;
   box-sizing: border-box; border: 1px solid #8888; border-radius: 4px; }
@@ -84,18 +95,24 @@ function render({ model, el }) {
   );
 
   let index = null;
-  import(MINISEARCH).then(({ default: MiniSearch }) => {
-    index = new MiniSearch({
-      fields: SEARCHED,
-      extractField: (doc, field) => [doc[field] ?? ""].flat().join(" "),
-    });
-    index.addAll(models);
-    update();
-  });
+  let search = "loading";
+  import(MINISEARCH)
+    .then(({ default: MiniSearch }) => {
+      index = new MiniSearch({
+        fields: SEARCHED,
+        extractField: (doc, field) => [doc[field] ?? ""].flat().join(" "),
+      });
+      index.addAll(models);
+      search = "ready";
+    })
+    .catch(() => {
+      search = "failed";
+    })
+    .finally(update);
 
   function found() {
     const text = box.value.trim();
-    if (!text || index === null) return models;
+    if (!text || search !== "ready") return models;
     const byId = new Map(models.map((m) => [m.id, m]));
     const options = { prefix: true, fuzzy: 0.2, combineWith: "AND" };
     return index.search(text, options).map((hit) => byId.get(hit.id));
@@ -124,11 +141,12 @@ function render({ model, el }) {
   }
 
   function update() {
+    const text = box.value;
+    const waiting = search === "loading" && text.trim() !== "";
     const matching = found();
-    const shown = matching.filter((m) => matches(m, selected));
+    const shown = waiting ? [] : matching.filter((m) => matches(m, selected));
     drawFacets(matching);
-    summary.textContent =
-      shown.length === 0 ? "No models match." : `${shown.length} of ${models.length} models`;
+    summary.textContent = status({ shown: shown.length, total: models.length, text, search });
     results.replaceChildren(
       ...shown.map((m) =>
         element(
