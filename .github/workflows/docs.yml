@@ -32,7 +32,21 @@ jobs:
 
       - run: python -m pip install -e ".[docs]"
 
-      # Generators (Tasks 2–4) go here
+      # Generators (Tasks 3–4) go here
+
+      # One page per public module, and one table of contents entry per page: MyST does not
+      # complain about an entry with no file behind it, and a page with no entry is simply
+      # absent from the site, so both are counted.
+      - name: Write the API reference pages
+        run: |
+          python tools/generate_api_pages.py docs/api
+          pages="$(ls docs/api | wc -l)"
+          modules="$(python -c 'import runpy; print(len(runpy.run_path("tools/generate_api_pages.py")["MODULES"]))')"
+          listed="$(grep -c 'file: api/' docs/myst.yml)"
+          test "${pages}" -eq "${modules}" || {
+            echo "wrote ${pages} pages for ${modules} modules"; exit 1; }
+          test "${pages}" -eq "${listed}" || {
+            echo "${pages} pages, ${listed} of them in the table of contents"; exit 1; }
 
       # `--strict` is what makes a broken page fail the job rather than build a site with it.
       - name: Build the site

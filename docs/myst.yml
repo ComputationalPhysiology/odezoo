@@ -16,10 +16,10 @@ project:
     - file: cli.md
     - file: python.md
       # Written at build time by `tools/generate_api_pages.py`, one page per public module.
-      # children:
-      #   - file: api/odezoo.api.md
-      #   - file: api/odezoo.schema.md
-      #   - file: api/odezoo.errors.md
+      children:
+        - file: api/odezoo.api.md
+        - file: api/odezoo.schema.md
+        - file: api/odezoo.errors.md
     - file: adding-a-model.md
     # One page per model, written at build time by `tools/generate_model_pages.py`. A glob,
     # so this file never changes when models are added; the docs job counts the pages instead.
