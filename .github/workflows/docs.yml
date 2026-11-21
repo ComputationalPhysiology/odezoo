@@ -32,7 +32,9 @@ jobs:
 
       - run: python -m pip install -e ".[docs]"
 
-      # Generators (Task 4) go here
+      # The search page's filtering and counting, without a browser or the network
+      - name: Test the search page
+        run: node --test "docs/_static/*.test.mjs"
 
       # The registry as this commit has it, so that each page's file links point at this
       # commit's copies. One page per model: the table of contents takes them with a glob, so
