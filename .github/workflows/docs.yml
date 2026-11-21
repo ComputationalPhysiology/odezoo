@@ -1,0 +1,44 @@
+name: Docs
+
+# Builds the site. ci.yml calls this on every pull request and push, to check that the site
+# builds; release.yml calls it on a tag and deploys what it uploads. Nothing here deploys.
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Where GitHub Pages serves the site from, for the static export's asset paths and for
+      # the links the search page makes.
+      BASE_URL: /odezoo
+      # `localhost` resolves to both 127.0.0.1 and ::1. Node's default order gives the theme
+      # server ::1 while the static export's own crawler connects to 127.0.0.1, so the export
+      # fails with ECONNREFUSED against a server that just reported starting. Pinning the
+      # order puts both on IPv4.
+      NODE_OPTIONS: --dns-result-order=ipv4first
+    steps:
+      - uses: actions/checkout@v5
+
+      # The Node that `pip install mystmd` bootstraps for itself crashes the static export in
+      # `writePublicJson`.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - run: python -m pip install -e ".[docs]"
+
+      # Generators (Tasks 2–4) go here
+
+      # `--strict` is what makes a broken page fail the job rather than build a site with it.
+      - name: Build the site
+        working-directory: docs
+        run: myst build --html --strict
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html

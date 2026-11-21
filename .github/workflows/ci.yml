@@ -33,3 +33,7 @@ jobs:
       - run: python -m pip install -e ".[test]"
       # Coverage is reported, not gated.
       - run: pytest --cov=odezoo --cov-report=term-missing
+
+  # Builds the site to check that it builds; only release.yml deploys it.
+  docs:
+    uses: ./.github/workflows/docs.yml

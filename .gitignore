@@ -7,3 +7,7 @@ _build/
 .venv/
 src/odezoo/registry.json
 .DS_Store
+docs/_build/
+docs/models/
+docs/api/
+docs/search.md
