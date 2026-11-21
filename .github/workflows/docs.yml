@@ -32,7 +32,21 @@ jobs:
 
       - run: python -m pip install -e ".[docs]"
 
-      # Generators (Tasks 3–4) go here
+      # Generators (Task 4) go here
+
+      # The registry as this commit has it, so that each page's file links point at this
+      # commit's copies. One page per model: the table of contents takes them with a glob, so
+      # a missing page would not be an error to MyST.
+      - name: Write the model pages
+        env:
+          ODEZOO_REGISTRY_COMMIT: ${{ github.sha }}
+        run: |
+          odezoo --registry . registry build -o "${RUNNER_TEMP}/registry.json"
+          python tools/generate_model_pages.py "${RUNNER_TEMP}/registry.json" docs
+          pages="$(ls docs/models | wc -l)"
+          models="$(ls models/*/model.toml | wc -l)"
+          test "${pages}" -eq "${models}" || {
+            echo "wrote ${pages} pages for ${models} models"; exit 1; }
 
       # One page per public module, and one table of contents entry per page: MyST does not
       # complain about an entry with no file behind it, and a page with no entry is simply
@@ -49,9 +63,24 @@ jobs:
             echo "${pages} pages, ${listed} of them in the table of contents"; exit 1; }
 
       # `--strict` is what makes a broken page fail the job rather than build a site with it.
+      # `shell: bash` runs with pipefail, so the build's own exit status survives the tee.
       - name: Build the site
         working-directory: docs
-        run: myst build --html --strict
+        shell: bash
+        run: myst build --html --strict 2>&1 | tee "${RUNNER_TEMP}/build.log"
+
+      # The search links to each model at /<id with _ as ->, as mystmd names its pages; and
+      # references.bib is meant to spare doi.org every request, so a lookup there is a bug.
+      - name: Check the model pages' addresses, and that doi.org was not asked
+        run: |
+          for page in docs/models/*.md; do
+            id="$(basename "${page}" .md)"
+            test -f "docs/_build/html/${id//_/-}.json" || {
+              echo "no page at /${id//_/-} for ${id}"; exit 1; }
+          done
+          if grep -q "from doi.org" "${RUNNER_TEMP}/build.log"; then
+            echo "the build asked doi.org for a DOI that references.bib lacks"; exit 1
+          fi
 
       - uses: actions/upload-pages-artifact@v3
         with:

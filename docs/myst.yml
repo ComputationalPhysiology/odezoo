@@ -6,6 +6,10 @@ project:
     A curated registry of ODE models, mostly cell models, stored as CellML or gotranx .ode, and
     fetched exactly as they were recorded, verified by their sha256.
   github: https://github.com/ComputationalPhysiology/odezoo
+  # Written at build time by `tools/generate_model_pages.py` from the models' papers, so that
+  # mystmd finds every DOI here and never asks doi.org.
+  bibliography:
+    - references.bib
   license:
     code: MIT
   toc:
@@ -23,9 +27,9 @@ project:
     - file: adding-a-model.md
     # One page per model, written at build time by `tools/generate_model_pages.py`. A glob,
     # so this file never changes when models are added; the docs job counts the pages instead.
-    # - title: Models
-    #   children:
-    #     - pattern: models/*.md
+    - title: Models
+      children:
+        - pattern: models/*.md
 
 site:
   template: book-theme
