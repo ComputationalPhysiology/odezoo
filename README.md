@@ -85,7 +85,8 @@ Each model is a folder under `models/` with a `model.toml` and the files it keep
 or a new version of one. GitHub and PMR URLs are pinned to a commit (for PMR, use the file's
 `rawfile` URL with the full commit id). A new model gets only its id; fill in its name, paper and
 categories, then run `odezoo registry check`. The documentation has the full guide to adding
-models.
+models, and [CONTRIBUTING.md](CONTRIBUTING.md) the steps for a pull request, including building
+the documentation.
 
 ## Licence
 

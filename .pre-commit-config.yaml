@@ -32,5 +32,5 @@ repos:
     hooks:
       - id: cspell
         # Prose and code only, as in gotranx; model files are data.
-        files: ^src/|^tests/|^docs/(.+)\.md$|^README\.md$
+        files: ^src/|^tests/|^docs/(.+)\.md$|^README\.md$|^CONTRIBUTING\.md$
         exclude: \.cellml$|\.ode$

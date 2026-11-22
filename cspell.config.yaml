@@ -5,6 +5,9 @@ dictionaries:
   - softwareTerms
 words:
   - odezoo
+  - myst
+  - docstrings
+  - linters
   - cellml
   - physiome
   - zenodo
