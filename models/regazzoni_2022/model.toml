@@ -1,0 +1,28 @@
+id = "regazzoni_2022"
+name = "Regazzoni 2022, closed-loop circulation"
+description = "Lumped-parameter closed-loop circulation with four chambers driven by time-varying elastances, twelve states. `beat_phase`, the time modulo the heart period `RR`, is a missing variable to supply. Each chamber's pressure is in its own component (`LA`, `LV`, `RA`, `RV`), so it can be removed to take the pressure from a mechanics model."
+categories = ["cardiovascular_circulation"]
+keywords = ["closed loop", "lumped parameter"]
+species = "human"
+reviewed = true
+
+[paper]
+title = "A cardiac electromechanical model coupled with a lumped-parameter model for closed-loop blood circulation"
+authors = ["Regazzoni F", "Salvador M", "Africa PC", "Fedele M", "Dedè L", "Quarteroni A"]
+journal = "J Comput Phys"
+year = 2022
+doi = "10.1016/j.jcp.2022.111083"
+
+[[versions]]
+id = "github-7b30ab4"
+format = "ode"
+sha256 = "39882325ed4c5eb4580161a5dfe7fc2cfb3ec39591aa1f15f9cc7397f17ba0bd"
+license = "MIT"
+file = "github-7b30ab4.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/circulation"
+commit = "7b30ab44220d2770a1599faf2a914a46bf61c5f1"
+path = "src/circulation/regazzoni2020.ode"

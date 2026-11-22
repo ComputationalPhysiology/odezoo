@@ -1,0 +1,28 @@
+id = "rdq20_mf"
+name = "Regazzoni, Dede' & Quarteroni 2020 (RDQ20-MF)"
+description = "The mean-field RDQ20 model: regulatory-unit kinetics with crossbridge cycling. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "human"
+reviewed = true
+
+[paper]
+title = "Biophysically detailed mathematical models of multiscale cardiac active mechanics"
+authors = ["Regazzoni F", "Dedè L", "Quarteroni A"]
+journal = "PLoS Comput Biol"
+year = 2020
+doi = "10.1371/journal.pcbi.1008294"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "07c0d2743c286fcfde1a0f68f7ff65f156aad78cee0531d55c073f7b26fb6df7"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/rdq20mf.ode"

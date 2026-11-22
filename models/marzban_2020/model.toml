@@ -1,0 +1,37 @@
+id = "marzban_2020"
+name = "Marzban, Lopez & Beard 2020, rat myofilament energetics"
+description = "Crossbridge mechanics with MgATP, MgADP and Pi dependence, at 37 °C. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "rat"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "Computational Modeling of Coupled Energetics and Mechanics in the Rat Ventricular Myocardium"
+authors = ["Marzban B", "Lopez R", "Beard DA"]
+journal = "Physiome"
+year = 2020
+doi = "10.36903/physiome.12964970"
+
+[[references]]
+title = "Impaired Myocardial Energetics Causes Mechanical Dysfunction in Decompensated Failing Hearts"
+authors = ["Lopez R", "Marzban B", "Gao X", "Lauinger E", "Van den Bergh F", "Whitesall SE", "Converso-Baran K", "Burant CF", "Michele DE", "Beard DA"]
+journal = "Function"
+year = 2020
+doi = "10.1093/function/zqaa018"
+note = "the cardiomyocyte model the Physiome paper reproduces"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "624590bc2758e73885f042c90337ee5a305a77ed034b6ea9cdf157f52b677626"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/marzban2020.ode"

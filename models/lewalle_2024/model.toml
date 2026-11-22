@@ -1,0 +1,29 @@
+id = "lewalle_2024"
+name = "Lewalle 2024, thick-filament force feedback"
+description = "Land 2017 with two myosin OFF states whose exchange with the ON states is modulated by force. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`. The `which_dep` parameter selects what modulates the OFF-state exchange; its default, 0, is total force."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "human"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "Cardiac length-dependent activation driven by force-dependent thick-filament dynamics"
+authors = ["Lewalle A", "Milburn G", "Campbell KS", "Niederer SA"]
+journal = "Biophys J"
+year = 2024
+doi = "10.1016/j.bpj.2024.05.025"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "e2a0cef59c5e954c1807e4183498f564d34f5e578b094f7b6187adade4fcc9dc"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/lewalle2024.ode"
