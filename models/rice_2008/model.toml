@@ -1,0 +1,28 @@
+id = "rice_2008"
+name = "Rice 2008, cardiac myofilament model"
+description = "With the paper's rat parameters at 22.5 °C; where the paper and the CellML disagree, the file's header says which it follows. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "rat"
+reviewed = true
+
+[paper]
+title = "Approximate Model of Cooperative Activation and Crossbridge Cycling in Cardiac Muscle Using Ordinary Differential Equations"
+authors = ["Rice JJ", "Wang F", "Bers DM", "de Tombe PP"]
+journal = "Biophys J"
+year = 2008
+doi = "10.1529/biophysj.107.119487"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "4fef8370e330141cc3ceb49a440ab8f2c24afaeb4ebe565534e9c19ecb78ff2c"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/rice2008.ode"

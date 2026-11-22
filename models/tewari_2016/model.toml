@@ -1,0 +1,37 @@
+id = "tewari_2016"
+name = "Tewari 2016, rat myofilament energetics"
+description = "Crossbridge mechanics with MgATP, MgADP and Pi dependence. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "rat"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "Influence of metabolic dysfunction on cardiac mechanics in decompensated hypertrophy and heart failure"
+authors = ["Tewari SG", "Bugenhagen SM", "Vinnakota KC", "Rice JJ", "Janssen PM", "Beard DA"]
+journal = "J Mol Cell Cardiol"
+year = 2016
+doi = "10.1016/j.yjmcc.2016.04.003"
+
+[[references]]
+title = "Dynamics of cross-bridge cycling, ATP hydrolysis, force generation, and deformation in cardiac muscle"
+authors = ["Tewari SG", "Bugenhagen SM", "Palmer BM", "Beard DA"]
+journal = "J Mol Cell Cardiol"
+year = 2016
+doi = "10.1016/j.yjmcc.2015.02.006"
+note = "the crossbridge moment equations"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "9b54040edd9f710bf38f4bee25a964393c84701780e5a02ad2b24c8d5fe7cde1"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/tewari2016.ode"

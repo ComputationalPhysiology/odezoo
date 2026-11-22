@@ -1,0 +1,29 @@
+id = "land_2017"
+name = "Land 2017, human cardiac contraction"
+description = "Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "human"
+cell_type = "ventricular myocyte"
+reviewed = true
+
+[paper]
+title = "A model of cardiac contraction based on novel measurements of tension development in human cardiomyocytes"
+authors = ["Land S", "Park-Holohan SJ", "Smith NP", "dos Remedios CG", "Kentish JC", "Niederer SA"]
+journal = "J Mol Cell Cardiol"
+year = 2017
+doi = "10.1016/j.yjmcc.2017.03.008"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "84c84b4275f6b76f9fcb17fe47df7cdaa7679bed7fa63605391fe0c575aae267"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/land2017.ode"

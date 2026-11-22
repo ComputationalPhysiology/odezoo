@@ -1,0 +1,29 @@
+id = "musgrave_2025"
+name = "Musgrave 2025, human atrial crossbridge model"
+description = "Metabolite-sensitive crossbridge model fitted to permeabilized human right atrial trabeculae, at 37 °C, with the non-diabetic parameters. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "active tension"]
+species = "human"
+cell_type = "atrial myocyte"
+reviewed = true
+
+[paper]
+title = "Metabolite-sensitive cross-bridge models of human atria reveal the impact of diabetes on muscle mechanoenergetics"
+authors = ["Musgrave JH", "Han J", "Ward M", "Taberner AJ", "Tran K"]
+journal = "J Physiol"
+year = 2025
+doi = "10.1113/JP288463"
+
+[[versions]]
+id = "github-6e5a5aa"
+format = "ode"
+sha256 = "ddb73850629fcad5bca7ee0b5d6185d8c62de939dce21e8830e3f34879993672"
+license = "MIT"
+file = "github-6e5a5aa.ode"
+added = 2026-11-22
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "6e5a5aa543a57d5ecfbae7af4bd7d4ed9f1bdbfd"
+path = "src/crossbridge/musgrave2025.ode"

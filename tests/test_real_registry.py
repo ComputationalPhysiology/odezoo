@@ -34,7 +34,7 @@ def test_upstream_pmr_serves_the_same_bytes():
 
 def test_seed_models():
     models = load_checkout(REPO).models
-    assert len(models) == 41
+    assert len(models) == 49
     for family in ("tentusscher_2004", "tentusscher_2006", "sakmann_2000"):
         assert sorted(m.id for m in models.values() if m.family == family) == [
             f"{family}_endo",
@@ -71,6 +71,7 @@ def test_cell_types_are_plain_names():
     # Notes, such as which parameter value selects the cell, belong in the description.
     models = load_checkout(REPO).models
     assert {m.cell_type for m in models.values()} == {
+        None,  # models of no one cell type, such as the circulation or a myofilament
         "ventricular myocyte",
         "ventricular myocyte, apex",
         "ventricular myocyte, endocardial",
