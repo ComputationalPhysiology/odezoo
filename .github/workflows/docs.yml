@@ -1,0 +1,89 @@
+name: Docs
+
+# Builds the site. ci.yml calls this on every pull request and push, to check that the site
+# builds; release.yml calls it on a tag and deploys what it uploads. Nothing here deploys.
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Where GitHub Pages serves the site from, for the static export's asset paths and for
+      # the links the search page makes.
+      BASE_URL: /odezoo
+      # `localhost` resolves to both 127.0.0.1 and ::1. Node's default order gives the theme
+      # server ::1 while the static export's own crawler connects to 127.0.0.1, so the export
+      # fails with ECONNREFUSED against a server that just reported starting. Pinning the
+      # order puts both on IPv4.
+      NODE_OPTIONS: --dns-result-order=ipv4first
+    steps:
+      - uses: actions/checkout@v5
+
+      # The Node that `pip install mystmd` bootstraps for itself crashes the static export in
+      # `writePublicJson`.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - run: python -m pip install -e ".[docs]"
+
+      # The search page's filtering and counting, without a browser or the network
+      - name: Test the search page
+        run: node --test "docs/_static/*.test.mjs"
+
+      # The registry as this commit has it, so that each page's file links point at this
+      # commit's copies. One page per model: the table of contents takes them with a glob, so
+      # a missing page would not be an error to MyST.
+      - name: Write the model pages
+        env:
+          ODEZOO_REGISTRY_COMMIT: ${{ github.sha }}
+        run: |
+          odezoo --registry . registry build -o "${RUNNER_TEMP}/registry.json"
+          python tools/generate_model_pages.py "${RUNNER_TEMP}/registry.json" docs
+          pages="$(ls docs/models | wc -l)"
+          models="$(ls models/*/model.toml | wc -l)"
+          test "${pages}" -eq "${models}" || {
+            echo "wrote ${pages} pages for ${models} models"; exit 1; }
+
+      # One page per public module, and one table of contents entry per page: MyST does not
+      # complain about an entry with no file behind it, and a page with no entry is simply
+      # absent from the site, so both are counted.
+      - name: Write the API reference pages
+        run: |
+          python tools/generate_api_pages.py docs/api
+          pages="$(ls docs/api | wc -l)"
+          modules="$(python -c 'import runpy; print(len(runpy.run_path("tools/generate_api_pages.py")["MODULES"]))')"
+          listed="$(grep -c 'file: api/' docs/myst.yml)"
+          test "${pages}" -eq "${modules}" || {
+            echo "wrote ${pages} pages for ${modules} modules"; exit 1; }
+          test "${pages}" -eq "${listed}" || {
+            echo "${pages} pages, ${listed} of them in the table of contents"; exit 1; }
+
+      # `--strict` is what makes a broken page fail the job rather than build a site with it.
+      # `shell: bash` runs with pipefail, so the build's own exit status survives the tee.
+      - name: Build the site
+        working-directory: docs
+        shell: bash
+        run: myst build --html --strict 2>&1 | tee "${RUNNER_TEMP}/build.log"
+
+      # The search links to each model at /<id with _ as ->, as mystmd names its pages; and
+      # references.bib is meant to spare doi.org every request, so a lookup there is a bug.
+      - name: Check the model pages' addresses, and that doi.org was not asked
+        run: |
+          for page in docs/models/*.md; do
+            id="$(basename "${page}" .md)"
+            test -f "docs/_build/html/${id//_/-}.json" || {
+              echo "no page at /${id//_/-} for ${id}"; exit 1; }
+          done
+          if grep -q "from doi.org" "${RUNNER_TEMP}/build.log"; then
+            echo "the build asked doi.org for a DOI that references.bib lacks"; exit 1
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html

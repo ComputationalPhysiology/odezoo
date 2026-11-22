@@ -1,0 +1,53 @@
+name: Release
+
+on: [push, pull_request]
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Build SDist and wheel
+      run: pipx run build
+
+    - uses: actions/upload-artifact@v7
+      with:
+        path: dist/*
+
+    - name: Check metadata
+      run: pipx run twine check dist/*
+
+  publish:
+    needs: [dist]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags')
+    environment: pypi
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/download-artifact@v8
+      with:
+        name: artifact
+        path: dist
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+
+  # The site, deployed once the release is on PyPI. ci.yml builds it on every pull request.
+  docs:
+    if: startsWith(github.ref, 'refs/tags')
+    uses: ./.github/workflows/docs.yml
+
+  deploy:
+    needs: [docs, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v4

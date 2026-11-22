@@ -5,6 +5,9 @@ dictionaries:
   - softwareTerms
 words:
   - odezoo
+  - myst
+  - docstrings
+  - linters
   - cellml
   - physiome
   - zenodo
@@ -33,6 +36,9 @@ words:
   - midmyocardial
   - sinoatrial
   - purkinje
+  - griffe
+  - mystmd
+  - anywidget
   - panfilov
   - alternans
   - khwj

@@ -13,8 +13,11 @@ authors = [{ name = "Henrik Finsberg", email = "henriknf@simula.no" }]
 dependencies = ["rich>=13"]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "pytest-socket", "hatchling"]
-dev = ["pre-commit", "odezoo[test]"]
+# griffe: the API reference generator's tests read the source with it.
+test = ["pytest", "pytest-cov", "pytest-socket", "hatchling", "griffe>=2"]
+# What building the site needs; Node 22 comes from the system (see docs.yml).
+docs = ["griffe>=2", "mystmd>=1.13,<2"]
+dev = ["pre-commit", "odezoo[test,docs]"]
 
 [project.urls]
 Homepage = "https://github.com/ComputationalPhysiology/odezoo"

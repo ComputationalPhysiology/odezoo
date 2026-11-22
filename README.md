@@ -9,11 +9,21 @@ from, which paper it belongs to, and how to find it.
 
 ## Install
 
-odezoo needs Python 3.11 or later. Until the first release is on PyPI, install it from GitHub:
+odezoo needs Python 3.11 or later.
+
+```
+python3 -m pip install odezoo
+```
+
+Each release bundles the registry as it was then. For models added since the last release,
+install from GitHub:
 
 ```
 python3 -m pip install git+https://github.com/ComputationalPhysiology/odezoo
 ```
+
+The documentation, with a page for every model and a search, is at
+<https://computationalphysiology.github.io/odezoo>.
 
 ## Quick start
 
@@ -48,12 +58,12 @@ path = odezoo.get("beeler_reuter_1977")  # the file in the cache
 path = odezoo.get("beeler_reuter_1977", dest=".")  # copied to ./beeler_reuter_1977.cellml
 ```
 
-With gotranx, a model's `.ode` version loads directly:
+With gotranx, a model's `.ode` version, where it has one, loads directly:
 
 ```python
 import gotranx
 
-ode = gotranx.load_ode(odezoo.get("tworld", format="ode"))
+ode = gotranx.load_ode(odezoo.get(model_id, format="ode"))
 ```
 
 ## Settings
@@ -74,8 +84,9 @@ Each model is a folder under `models/` with a `model.toml` and the files it keep
 `odezoo registry add url URL --id ID [--license SPDX]` downloads a file and adds it, as a new model
 or a new version of one. GitHub and PMR URLs are pinned to a commit (for PMR, use the file's
 `rawfile` URL with the full commit id). A new model gets only its id; fill in its name, paper and
-categories, then run `odezoo registry check`. The full guide to adding models will be in the
-documentation.
+categories, then run `odezoo registry check`. The documentation has the full guide to adding
+models, and [CONTRIBUTING.md](CONTRIBUTING.md) the steps for a pull request, including building
+the documentation.
 
 ## Licence
 

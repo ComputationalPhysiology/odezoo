@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: odezoo
+message: >-
+  If you use odezoo, please cite it as below, and cite the paper of each model you use: odezoo
+  info ID and each model's page give it.
+type: software
+authors:
+  - given-names: Henrik
+    family-names: Finsberg
+    email: henriknf@simula.no
+    affiliation: Simula Research Laboratory
+abstract: >-
+  A curated registry of ODE models, mostly cell models, stored as CellML or gotranx .ode, with a
+  Python package and command line that search it and fetch each model's file exactly as it was
+  recorded, verified by its sha256.
+repository-code: https://github.com/ComputationalPhysiology/odezoo
+url: https://computationalphysiology.github.io/odezoo
+license: MIT
+version: 0.1.0
+keywords:
+  - ODE models
+  - cell models
+  - CellML
+  - gotranx

@@ -29,3 +29,15 @@ def test_sdist_holds_only_the_package_files(tmp_path):
         names = [name.split("/", 1)[1] for name in sdist.getnames() if "/" in name]
     assert not [n for n in names if n.startswith((".superpowers", "docs", "models", ".github"))]
     assert "src/odezoo/registry.json" in names and "LICENSES/CC-BY-3.0.txt" in names
+
+
+def test_citation_has_the_package_version():
+    # Zenodo takes a release's metadata from CITATION.cff, so it must not lag behind.
+    import re
+    import tomllib
+
+    version = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    cited = re.search(
+        r"^version: (\S+)$", (REPO / "CITATION.cff").read_text(encoding="utf-8"), re.M
+    )
+    assert cited is not None and cited.group(1) == version["version"]
