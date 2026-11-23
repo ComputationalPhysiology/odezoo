@@ -32,7 +32,11 @@ jobs:
         name: artifact
         path: dist
 
+    # A version already on PyPI is left as it is, so that a re-run, or a tag for a version
+    # uploaded by hand, still goes on to deploy the docs.
     - uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        skip-existing: true
 
   # The site, deployed once the release is on PyPI. ci.yml builds it on every pull request.
   docs:
