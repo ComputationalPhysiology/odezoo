@@ -7,8 +7,9 @@ odezoo needs Python 3.11 or later, and its only dependency is
 python3 -m pip install odezoo
 ```
 
-Each release bundles the registry as it was when the release was made. For models added since
-the last release, install from GitHub:
+Each release bundles the registry as it was when the release was made. This site follows the
+repository's `main` branch, so it may list models that are not in a release yet. To get those,
+install from GitHub:
 
 ```
 python3 -m pip install git+https://github.com/ComputationalPhysiology/odezoo

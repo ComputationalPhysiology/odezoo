@@ -1,9 +1,12 @@
 name: Docs
 
-# Builds the site. ci.yml calls this on every pull request and push, to check that the site
-# builds; release.yml calls it on a tag and deploys what it uploads. Nothing here deploys.
+# Builds the site on every pull request and push, to check that it builds, and deploys it from
+# every push to main, so that it shows the models on main.
 on:
-  workflow_call:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -87,3 +90,22 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_build/html
+
+  # One deploy at a time, and one in flight is never cancelled: a half-published site is worse
+  # than an old one.
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

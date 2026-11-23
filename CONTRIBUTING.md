@@ -89,7 +89,7 @@ root.
 
 ### Check the site CI built for a pull request
 
-The `docs` job of each pull request uploads the built site as an artifact named
+The Docs workflow of each pull request uploads the built site as an artifact named
 `github-pages`. It is built to be served at `/odezoo/`, where GitHub Pages serves it. Served from
 `/`, its stylesheets and links are not found and the pages look broken. Put it in a folder named
 `odezoo`:
@@ -119,5 +119,6 @@ For maintainers:
    merge that to `main`.
 2. On GitHub, go to Releases, then Draft a new release, with a new tag `v<version>` on `main`.
 
-Publishing the release creates the tag, and `release.yml` then publishes the package to PyPI and
-deploys the site. Zenodo archives the release.
+Publishing the release creates the tag, and `release.yml` then publishes the package to PyPI.
+Zenodo archives the release. The site needs no release: `docs.yml` deploys it on every push to
+`main`.
