@@ -1,0 +1,4 @@
+parameters(stim_duration=1.0, stim_start=100.0, stim_amplitude=50.0)
+states(v=0.0)
+stim = Conditional(And(Ge(t, stim_start), Lt(t, stim_start + stim_duration)), stim_amplitude, 0)
+dv_dt = stim - v
