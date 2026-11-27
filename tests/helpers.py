@@ -165,3 +165,17 @@ def replace_version(model: Model, **changes: Any) -> Model:
     """`model` with `dataclasses.replace(**changes)` applied to its first version"""
     first = replace(model.versions[0], **changes)
     return replace(model, versions=(first, *model.versions[1:]))
+
+
+def sleep_forever(job: Any, out_dir: Path) -> Any:
+    """A simulation worker that never finishes, for the time limit's tests"""
+    import time
+
+    time.sleep(60)
+
+
+def exit_hard(job: Any, out_dir: Path) -> Any:
+    """A simulation worker whose process dies without a result"""
+    import os
+
+    os._exit(3)

@@ -1,8 +1,13 @@
 """The model simulator for the site, `tools/simulate_models.py`"""
 
 import importlib.util
+import json
 import math
+import sys
+import time
+from datetime import date
 
+import helpers
 import pytest
 from helpers import REPO
 
@@ -13,11 +18,15 @@ pytest.importorskip("crossbridge", reason="the calcium transients come from cros
 
 import numpy as np  # noqa: E402
 
+from odezoo.registry import build  # noqa: E402
+
 _spec = importlib.util.spec_from_file_location(
     "simulate_models", REPO / "tools" / "simulate_models.py"
 )
 assert _spec is not None and _spec.loader is not None
 sim = importlib.util.module_from_spec(_spec)
+# Registered by name, so that the processes it starts can unpickle its jobs and workers.
+sys.modules["simulate_models"] = sim
 _spec.loader.exec_module(sim)
 
 DATA = REPO / "tests" / "data" / "simulate"
@@ -109,3 +118,67 @@ def test_plot_writes_a_png(tmp_path):
     path = tmp_path / "model.png"
     sim.plot(trace, sim.panels(trace, "electrophysiology"), "A model", path)
     assert path.read_bytes().startswith(b"\x89PNG")
+
+
+def job(tmp_path, name, category="electrophysiology"):
+    return sim.Job(id=name, version="v1", path=DATA / f"{name}.ode", category=category, title=name)
+
+
+def test_run_one_reports_a_load_failure(tmp_path):
+    outcome = sim.run_one(job(tmp_path, "broken"), tmp_path)
+    assert (outcome.status, outcome.stage, outcome.figure) == ("failed", "load", None)
+    assert outcome.error
+
+
+def test_run_one_reports_a_missing_file(tmp_path):
+    missing = sim.Job(id="gone", version="v1", path=None, category="x", title="Gone")
+    outcome = sim.run_one(missing, tmp_path)
+    assert (outcome.status, outcome.stage) == ("failed", "load")
+
+
+def test_run_one_ok_writes_a_figure(tmp_path):
+    outcome = sim.run_one(job(tmp_path, "decay"), tmp_path)
+    assert (outcome.status, outcome.figure) == ("ok", "decay.png")
+    assert (tmp_path / "decay.png").exists()
+
+
+def test_run_all_runs_every_job(tmp_path):
+    outcomes = sim.run_all(
+        [job(tmp_path, "decay"), job(tmp_path, "broken")], tmp_path, timeout=60, workers=2
+    )
+    assert {k: o.status for k, o in outcomes.items()} == {"decay": "ok", "broken": "failed"}
+
+
+def test_run_all_times_out(tmp_path):
+    started = time.monotonic()
+    outcomes = sim.run_all(
+        [job(tmp_path, "decay")], tmp_path, timeout=1, workers=1, worker=helpers.sleep_forever
+    )
+    assert outcomes["decay"].status == "timeout"
+    assert time.monotonic() - started < 10
+
+
+def test_run_all_reports_a_dead_process(tmp_path):
+    outcomes = sim.run_all(
+        [job(tmp_path, "decay")], tmp_path, timeout=30, workers=1, worker=helpers.exit_hard
+    )
+    assert outcomes["decay"].status == "failed"
+    assert "3" in outcomes["decay"].error
+
+
+def test_main_exits_0_when_models_fail(tmp_path):
+    root = helpers.write_checkout(tmp_path / "checkout", [(helpers.make_model(), {
+        "pmr-cb090c9.cellml": helpers.CELLML_BYTES})])  # fmt: skip
+    registry_json = tmp_path / "registry.json"
+    data = build(root, commit=None, built=date(2026, 11, 27))
+    registry_json.write_text(json.dumps(data), encoding="utf-8")
+    out = tmp_path / "out"
+    code = sim.main([str(registry_json), str(root / "models"), str(out), "--workers", "1"])
+    assert code == 0
+    status = json.loads((out / "status.json").read_text(encoding="utf-8"))
+    assert status["models"]["beeler_reuter_1977"]["status"] == "failed"
+    assert status["models"]["beeler_reuter_1977"]["version"] == "pmr-cb090c9"
+
+
+def test_main_usage_error(capsys):
+    assert sim.main([]) == 2

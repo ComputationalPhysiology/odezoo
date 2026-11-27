@@ -14,11 +14,19 @@ model that got far enough. A model that fails is recorded, never raised: the sit
 
 from __future__ import annotations
 
+import argparse
+import json
+import logging
+import multiprocessing
+import os
+import queue
+import sys
 import tempfile
-from collections.abc import Callable
-from dataclasses import dataclass
+import time
+from collections.abc import Callable, Sequence
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 
@@ -421,3 +429,286 @@ def plot(trace: Trace, chosen: list[tuple[str, list[str]]], title: str, path: Pa
     fig.tight_layout()
     fig.savefig(path, dpi=100)
     plt.close(fig)
+
+
+@dataclass
+class Job:
+    """A model to simulate
+
+    Parameters
+    ----------
+    id : str
+        The model's id
+    version : str
+        The id of the version simulated, the model's default
+    path : Path | None
+        The version's file in the checkout, or `None` when the checkout has no copy
+    category : str
+        The model's first category, which chooses the plots
+    title : str
+        The figure's title
+    """
+
+    id: str
+    version: str
+    path: Path | None
+    category: str
+    title: str
+
+
+@dataclass
+class Outcome:
+    """How a model's simulation went
+
+    Parameters
+    ----------
+    id : str
+        The model's id
+    version : str
+        The version simulated
+    status : Literal["ok", "failed", "timeout"]
+        Whether it ran
+    stage : str | None
+        Where it failed: `load`, `codegen`, `simulate` or `plot`, or `None`
+    error : str | None
+        What went wrong, on one line
+    seconds : float
+        How long it took
+    figure : str | None
+        The PNG's file name in the output folder, when one was written
+    """
+
+    id: str
+    version: str
+    status: Literal["ok", "failed", "timeout"]
+    stage: str | None
+    error: str | None
+    seconds: float
+    figure: str | None
+
+
+def jobs(registry: Any, models_dir: Path) -> list[Job]:
+    """List the default version of every model, by id
+
+    Parameters
+    ----------
+    registry : Registry
+        The registry
+    models_dir : Path
+        The checkout's `models` folder
+
+    Returns
+    -------
+    list[Job]
+        One job per model, sorted by id
+    """
+    from odezoo.resolve import choose_version
+
+    result = []
+    for model_id in sorted(registry.models):
+        model = registry.models[model_id]
+        version = choose_version(model)
+        path = models_dir / model_id / version.file if version.file else None
+        result.append(Job(model_id, version.id, path, model.categories[0], model.name))
+    return result
+
+
+def run_one(job: Job, out_dir: Path) -> Outcome:
+    """Simulate one model and plot it, recording any failure rather than raising it
+
+    Parameters
+    ----------
+    job : Job
+        The model
+    out_dir : Path
+        Where to write the figure, `<id>.png`
+
+    Returns
+    -------
+    Outcome
+        How it went
+    """
+    import structlog
+
+    # gotranx reports every step of loading a model; only its errors matter here.
+    structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(logging.ERROR))
+    started = time.monotonic()
+
+    def outcome(status: Any, stage: str | None, error: str | None, figure: str | None) -> Outcome:
+        seconds = round(time.monotonic() - started, 2)
+        return Outcome(job.id, job.version, status, stage, error, seconds, figure)
+
+    try:
+        if job.path is None or not job.path.is_file():
+            raise SimulationError("load", "the checkout has no copy of this version")
+        ode, seconds_per_unit = load(job.path)
+        trace = simulate(ode, seconds_per_unit, calcium=calcium(job.id))
+        figure = f"{job.id}.png"
+        try:
+            plot(trace, panels(trace, job.category), job.title, out_dir / figure)
+        except Exception as e:
+            raise SimulationError("plot", _describe(e)) from e
+    except SimulationError as e:
+        return outcome("failed", e.stage, str(e), None)
+    except Exception as e:
+        return outcome("failed", None, _describe(e), None)
+    return outcome("ok", None, None, figure)
+
+
+def _child(worker: Callable[[Job, Path], Outcome], job: Job, out_dir: Path, results: Any) -> None:
+    """Run one job in a child process and send back its outcome
+
+    Parameters
+    ----------
+    worker : Callable[[Job, Path], Outcome]
+        What runs the job
+    job : Job
+        The job
+    out_dir : Path
+        The output folder
+    results : multiprocessing.Queue
+        Where the outcome goes, as `(id, dict)`
+    """
+    results.put((job.id, asdict(worker(job, out_dir))))
+
+
+def run_all(
+    jobs: list[Job],
+    out_dir: Path,
+    *,
+    timeout: float,
+    workers: int,
+    worker: Callable[[Job, Path], Outcome] = run_one,
+) -> dict[str, Outcome]:
+    """Run every job, each in its own process, at most `workers` at a time
+
+    Parameters
+    ----------
+    jobs : list[Job]
+        The models
+    out_dir : Path
+        Where the figures go
+    timeout : float
+        Seconds a job may take before its process is stopped and it is recorded as `timeout`
+    workers : int
+        How many processes run at once
+    worker : Callable[[Job, Path], Outcome], optional
+        What runs a job in its process, by default `run_one`
+
+    Returns
+    -------
+    dict[str, Outcome]
+        Every job's outcome, by model id
+    """
+    # The children import this module by name, wherever it was loaded from.
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    context = multiprocessing.get_context("spawn")
+    results = context.Queue()
+    pending = list(jobs)
+    running: dict[str, tuple[Any, Job, float]] = {}
+    outcomes: dict[str, Outcome] = {}
+
+    def drain(wait: float) -> None:
+        try:
+            while True:
+                model_id, data = results.get(timeout=wait)
+                outcomes[model_id] = Outcome(**data)
+                wait = 0.0
+        except queue.Empty:
+            pass
+
+    def failed(job: Job, status: Any, error: str, started: float) -> Outcome:
+        seconds = round(time.monotonic() - started, 2)
+        return Outcome(job.id, job.version, status, None, error, seconds, None)
+
+    while pending or running:
+        while pending and len(running) < max(workers, 1):
+            job = pending.pop(0)
+            process = context.Process(target=_child, args=(worker, job, out_dir, results))
+            process.start()
+            running[job.id] = (process, job, time.monotonic())
+        drain(0.1)
+        for model_id, (process, job, started) in list(running.items()):
+            if model_id in outcomes:
+                process.join(5)
+            elif not process.is_alive():
+                drain(0.5)
+                if model_id not in outcomes:
+                    error = f"the process exited with code {process.exitcode}"
+                    outcomes[model_id] = failed(job, "failed", error, started)
+            elif time.monotonic() - started > timeout:
+                process.terminate()
+                process.join(5)
+                if process.is_alive():
+                    process.kill()
+                    process.join()
+                error = f"stopped after {timeout:g} s"
+                outcomes[model_id] = failed(job, "timeout", error, started)
+            else:
+                continue
+            del running[model_id]
+    return outcomes
+
+
+def write_status(outcomes: dict[str, Outcome], path: Path) -> None:
+    """Write every model's outcome as JSON, `{"models": {id: outcome}}`
+
+    Parameters
+    ----------
+    outcomes : dict[str, Outcome]
+        The outcomes, by model id
+    path : Path
+        The file to write
+    """
+    data = {"models": {k: asdict(outcomes[k]) for k in sorted(outcomes)}}
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Simulate the models and write `status.json` and the figures
+
+    Parameters
+    ----------
+    argv : Sequence[str], optional
+        The arguments, by default `sys.argv[1:]`
+
+    Returns
+    -------
+    int
+        0 whatever the models did, or 2 for a usage error
+    """
+    parser = argparse.ArgumentParser(prog=Path(__file__).name, description=__doc__.splitlines()[0])
+    parser.add_argument("registry_json", type=Path, help="a registry.json, as `registry build`")
+    parser.add_argument("models_dir", type=Path, help="the checkout's models folder")
+    parser.add_argument("out_dir", type=Path, help="where status.json and the figures go")
+    parser.add_argument("--timeout", type=float, default=300.0, help="seconds per model")
+    parser.add_argument("--workers", type=int, default=os.cpu_count() or 1)
+    parser.add_argument("--only", nargs="+", metavar="ID", help="simulate only these models")
+    try:
+        args = parser.parse_args(sys.argv[1:] if argv is None else list(argv))
+    except SystemExit as e:
+        return 0 if e.code == 0 else 2
+
+    from odezoo.registry import from_json
+
+    registry = from_json(json.loads(args.registry_json.read_text(encoding="utf-8")))
+    todo = [j for j in jobs(registry, args.models_dir) if not args.only or j.id in args.only]
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    started = time.monotonic()
+    outcomes = run_all(todo, args.out_dir, timeout=args.timeout, workers=args.workers)
+    write_status(outcomes, args.out_dir / "status.json")
+    for model_id in sorted(outcomes):
+        o = outcomes[model_id]
+        where = f" at {o.stage}" if o.stage else ""
+        error = f"{where}: {o.error}" if o.error else ""
+        print(f"{o.status:<8}{model_id:<28}{o.seconds:7.1f} s{error}")
+    counts = {s: sum(o.status == s for o in outcomes.values()) for s in ("ok", "failed", "timeout")}
+    total = time.monotonic() - started
+    print(", ".join(f"{n} {s}" for s, n in counts.items()) + f", in {total:.0f} s")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
