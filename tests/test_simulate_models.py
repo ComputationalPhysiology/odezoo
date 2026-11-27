@@ -182,3 +182,10 @@ def test_main_exits_0_when_models_fail(tmp_path):
 
 def test_main_usage_error(capsys):
     assert sim.main([]) == 2
+
+
+def test_run_one_keeps_gotranx_quiet(tmp_path, capfd):
+    # In a fresh process, where importing gotranx sets up its own logging.
+    sim.run_all([job(tmp_path, "decay")], tmp_path, timeout=60, workers=1)
+    out, err = capfd.readouterr()
+    assert "Load ode" not in out + err

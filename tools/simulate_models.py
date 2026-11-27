@@ -528,9 +528,11 @@ def run_one(job: Job, out_dir: Path) -> Outcome:
     Outcome
         How it went
     """
+    import gotranx  # noqa: F401
     import structlog
 
-    # gotranx reports every step of loading a model; only its errors matter here.
+    # gotranx reports every step of loading a model; only its errors matter here. It sets up its
+    # logging when imported, so this comes after the import.
     structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(logging.ERROR))
     started = time.monotonic()
 
