@@ -33,7 +33,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - run: python -m pip install -e ".[docs]"
+      # test: pytest and pytest-socket, for the docs tools' tests below
+      - run: python -m pip install -e ".[docs,test]"
 
       # The search page's filtering and counting, without a browser or the network
       - name: Test the search page
