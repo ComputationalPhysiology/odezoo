@@ -44,6 +44,7 @@ hatchling build hook in `hatch_build.py`. After changing `models/`, use `--regis
 | `src/odezoo/cli.py`, `render.py` | The argparse command line, and its rich output |
 | `src/odezoo/maintain/` | Maintainer commands: `check.py` (`registry check`), `version.py` (`registry add version`), `toml.py` (writes `model.toml`) |
 | `models/<id>/` | One model: `model.toml`, and copies named `<version id>.<ext>` |
+| `tools/` | The site's generators (`generate_model_pages.py`, `generate_api_pages.py`), and `simulate_models.py`, which simulates every model with gotranx for its page (needs the `docs` extra) |
 | `LICENSES/` | The text of each licence a kept copy is under, as `<SPDX id>.txt` |
 | `tests/` | The suite; `conftest.py` and `helpers.py` hold the fixtures and the fake HTTP server |
 

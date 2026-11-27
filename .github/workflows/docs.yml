@@ -40,14 +40,40 @@ jobs:
         run: node --test "docs/_static/*.test.mjs"
 
       # The registry as this commit has it, so that each page's file links point at this
-      # commit's copies. One page per model: the table of contents takes them with a glob, so
-      # a missing page would not be an error to MyST.
-      - name: Write the model pages
+      # commit's copies.
+      - name: Build the registry
         env:
           ODEZOO_REGISTRY_COMMIT: ${{ github.sha }}
+        run: odezoo --registry . registry build -o "${RUNNER_TEMP}/registry.json"
+
+      # The tools that write the site. They need gotranx, scipy and matplotlib, which only the
+      # docs extra installs, so this is the one job where the simulator's tests can run: a skip
+      # here would hide them, so one fails the step.
+      - name: Test the docs tools
+        shell: bash
         run: |
-          odezoo --registry . registry build -o "${RUNNER_TEMP}/registry.json"
-          python tools/generate_model_pages.py "${RUNNER_TEMP}/registry.json" docs
+          python -m pytest tests/test_simulate_models.py tests/test_model_pages.py -rs \
+            | tee "${RUNNER_TEMP}/tools-tests.log"
+          if grep -q "SKIPPED" "${RUNNER_TEMP}/tools-tests.log"; then
+            echo "the docs tools' tests were skipped"; exit 1
+          fi
+
+      # Every model's default version, simulated for its page. A model that fails is reported
+      # on the site, not here: the tool exits 0 whatever the models do, and should the tool
+      # itself break, the pages say that the simulation did not run, so neither fails the job.
+      - name: Simulate the models
+        continue-on-error: true
+        timeout-minutes: 30
+        run: >-
+          python tools/simulate_models.py "${RUNNER_TEMP}/registry.json" models
+          docs/simulations --workers 4
+
+      # One page per model: the table of contents takes them with a glob, so a missing page
+      # would not be an error to MyST.
+      - name: Write the model pages
+        run: |
+          python tools/generate_model_pages.py "${RUNNER_TEMP}/registry.json" docs \
+            docs/simulations
           pages="$(ls docs/models | wc -l)"
           models="$(ls models/*/model.toml | wc -l)"
           test "${pages}" -eq "${models}" || {

@@ -47,17 +47,27 @@ every supported Python, so mind paths, encodings and line endings.
 ## The documentation
 
 The site is built with [mystmd](https://mystmd.org) from `docs/`. The pages for each model, the
-search page and the API reference are generated at build time, so generate them first:
+search page, the simulations page and the API reference are generated at build time, so
+generate them first:
 
 ```
 odezoo --registry . registry build -o registry.json
-python3 tools/generate_model_pages.py registry.json docs
+python3 tools/simulate_models.py registry.json models docs/simulations
+python3 tools/generate_model_pages.py registry.json docs docs/simulations
 python3 tools/generate_api_pages.py docs/api
 rm registry.json
 ```
 
-The generated files are git-ignored. Run the three commands again after changing `models/` or
-the docstrings of `odezoo.api`, `odezoo.schema` or `odezoo.errors`.
+The generated files are git-ignored. Run the commands again after changing `models/` or the
+docstrings of `odezoo.api`, `odezoo.schema` or `odezoo.errors`.
+
+`simulate_models.py` loads every model's default version with gotranx and integrates it for 3 s,
+each in its own process with a time limit (`--timeout`, 300 s), and writes a figure per model and
+`status.json`. It takes several minutes; `--only ID ...` simulates only some models, and leaving
+out the step (and the last argument of `generate_model_pages.py`) gives pages that say the
+simulation did not run. A model that fails is reported on its page and on the simulations page,
+never as an error. CI runs the tool's tests in the docs job, the one job with gotranx installed:
+`python3 -m pytest tests/test_simulate_models.py tests/test_model_pages.py`.
 
 All `myst` commands run in `docs/`, with Node told to prefer IPv4. Otherwise the theme server and
 the content server may each take a different `localhost` and fail to find each other ("No site
