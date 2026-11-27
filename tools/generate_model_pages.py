@@ -1,10 +1,13 @@
 """Write a page for every model, and the search page, from a built `registry.json`
 
     odezoo --registry . registry build -o registry.json
-    BASE_URL=/odezoo python tools/generate_model_pages.py registry.json docs
+    python tools/simulate_models.py registry.json models docs/simulations
+    BASE_URL=/odezoo python tools/generate_model_pages.py registry.json docs docs/simulations
 
-`docs/models/<id>.md` holds a model's paper, details, versions and the command that fetches each
-version; `docs/search.md` holds the search widget, with every model inline. mystmd serves
+`docs/models/<id>.md` holds a model's paper, details, versions, the command that fetches each
+version and its simulation (from `docs/simulations/`, which `tools/simulate_models.py` writes);
+`docs/search.md` holds the search widget, with every model inline; `docs/simulations.md` lists
+every model's simulation, failures first. mystmd serves
 `models/<id>.md` at `/<slug>`, the id with `_` as `-`, which is where the search links to.
 
 mystmd turns every link to doi.org into a citation, and looks up any DOI it does not have at
@@ -229,7 +232,9 @@ def _versions(model: Model, registry: Registry) -> list[str]:
     return lines
 
 
-def model_page(model: Model, registry: Registry) -> str:
+def model_page(
+    model: Model, registry: Registry, status: dict[str, dict[str, Any]] | None = None
+) -> str:
     """Write one model's page
 
     Parameters
@@ -238,6 +243,9 @@ def model_page(model: Model, registry: Registry) -> str:
         The model
     registry : Registry
         The registry it is in
+    status : dict[str, dict[str, Any]] | None, optional
+        Every model's simulation outcome, by id, as `read_status` gives it, by default `None`:
+        the simulation did not run
 
     Returns
     -------
@@ -251,7 +259,145 @@ def model_page(model: Model, registry: Registry) -> str:
     lines += ["## Fetch it", ""]
     for v in model.versions:
         lines += ["```", f"odezoo fetch {model.id} --version {v.id}", "```", ""]
+    lines += [*simulation_section(model, status), ""]
     return "\n".join(lines).rstrip("\n") + "\n"
+
+
+#: What drives each category of model in the simulation, for the pages
+DRIVEN_BY = {
+    "electrophysiology": "with the stimulus protocol the file defines, if it has one",
+    "myofilament_mechanics": (
+        "with `Ca` following the calcium transient crossbridge drives this model with, repeated "
+        "every beat, and `SL` held at the file's default"
+    ),
+    "cardiovascular_circulation": "on its default parameters, with no input",
+}
+STATUS_ORDER = {"failed": 0, "timeout": 1, "ok": 2}
+NOT_RUN = "The simulation did not run in this build."
+
+
+def read_status(folder: Path | None) -> dict[str, dict[str, Any]] | None:
+    """Read the outcomes `tools/simulate_models.py` wrote
+
+    Parameters
+    ----------
+    folder : Path | None
+        The simulation's output folder, or `None`
+
+    Returns
+    -------
+    dict[str, dict[str, Any]] | None
+        Every model's outcome, by id, or `None` when there is no folder or no `status.json` in it
+    """
+    if folder is None or not (folder / "status.json").is_file():
+        return None
+    data = json.loads((folder / "status.json").read_text(encoding="utf-8"))
+    return dict(data["models"])
+
+
+def _code(text: str) -> str:
+    """Put text in a code span that backticks inside it cannot end
+
+    Parameters
+    ----------
+    text : str
+        The text, on one line
+
+    Returns
+    -------
+    str
+        The text between double backticks, padded with spaces
+    """
+    return f"`` {' '.join(text.split())} ``"
+
+
+def simulation_section(model: Model, status: dict[str, dict[str, Any]] | None) -> list[str]:
+    """Write the Simulation section of a model's page
+
+    Parameters
+    ----------
+    model : Model
+        The model
+    status : dict[str, dict[str, Any]] | None
+        Every model's simulation outcome, by id, or `None` when the simulation did not run
+
+    Returns
+    -------
+    list[str]
+        The section's lines: the figure, or a warning that says where and how it failed
+    """
+    lines = ["## Simulation", ""]
+    outcome = (status or {}).get(model.id)
+    if outcome is None:
+        return [*lines, ":::{note}", NOT_RUN, ":::"]
+    version = f"`{outcome['version']}`"
+    if outcome["status"] == "ok":
+        driven = DRIVEN_BY.get(model.categories[0], "from its initial values")
+        return [
+            *lines,
+            f"Version {version}, loaded with gotranx and integrated for 3 s {driven}. It took "
+            f"{outcome['seconds']:.1f} s to simulate and plot.",
+            "",
+            f"![Simulation of {model.id}](../simulations/{outcome['figure']})",
+        ]
+    if outcome["status"] == "timeout":
+        said = f"Version {version} did not finish within the time limit"
+    else:
+        stage = f" at the {outcome['stage']} stage" if outcome["stage"] else ""
+        said = f"Version {version} failed to simulate{stage}"
+    error = f": {_code(outcome['error'])}" if outcome["error"] else "."
+    return [*lines, ":::{warning}", said + error, ":::"]
+
+
+def simulations_page(registry: Registry, status: dict[str, dict[str, Any]] | None) -> str:
+    """Write the overview of every model's simulation, failures first
+
+    Parameters
+    ----------
+    registry : Registry
+        The registry
+    status : dict[str, dict[str, Any]] | None
+        Every model's simulation outcome, by id, or `None` when the simulation did not run
+
+    Returns
+    -------
+    str
+        The page, as MyST markdown
+    """
+    lines = ["---", "title: Simulations", "---", ""]
+    lines += [
+        "Every time the site is built, the default version of every model is loaded with "
+        "gotranx and integrated for 3 s: electrophysiology models with their own stimulus, "
+        "contraction models with a calcium transient as input, circulation models on their "
+        "defaults. Each model's page shows the result. A model that fails is reported here and "
+        "on its page; it does not stop the build.",
+        "",
+    ]
+    if status is None:
+        return "\n".join([*lines, ":::{note}", NOT_RUN, ":::", ""])
+    outcomes = [status.get(i) for i in sorted(registry.models)]
+    counts = [
+        f"{sum(o is not None and o['status'] == s for o in outcomes)} {label}"
+        for s, label in (("ok", "ok"), ("failed", "failed"), ("timeout", "timed out"))
+    ]
+    missing = sum(o is None for o in outcomes)
+    lines += [", ".join(counts) + (f", {missing} not run" if missing else "") + ".", ""]
+    lines += ["| Model | Version | Status | Stage | Seconds |", "| --- | --- | --- | --- | --- |"]
+
+    def order(model_id: str) -> tuple[int, str]:
+        o = status.get(model_id)
+        return (STATUS_ORDER.get(o["status"], -1) if o else -1, model_id)
+
+    for model_id in sorted(registry.models, key=order):
+        o = status.get(model_id)
+        link = f"[{model_id}](./models/{model_id}.md)"
+        if o is None:
+            cells = [link, "", "not run", "", ""]
+        else:
+            seconds = f"{o['seconds']:.1f}"
+            cells = [link, f"`{o['version']}`", o["status"], o["stage"] or "", seconds]
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join([*lines, ""])
 
 
 def search_data(registry: Registry, base_url: str) -> list[dict[str, Any]]:
@@ -322,8 +468,10 @@ def search_page(registry: Registry, base_url: str) -> str:
     )
 
 
-def write_pages(registry_json: Path, docs: Path, base_url: str) -> list[Path]:
-    """Write `docs/models/<id>.md` for every model, `docs/search.md` and `docs/references.bib`
+def write_pages(
+    registry_json: Path, docs: Path, base_url: str, simulations: Path | None = None
+) -> list[Path]:
+    """Write every model's page, the search and simulations pages, and `references.bib`
 
     Parameters
     ----------
@@ -333,11 +481,15 @@ def write_pages(registry_json: Path, docs: Path, base_url: str) -> list[Path]:
         The docs folder
     base_url : str
         Where the site is served from, such as `/odezoo`
+    simulations : Path | None, optional
+        The folder `tools/simulate_models.py` wrote, by default `None`: the pages then say that
+        the simulation did not run
 
     Returns
     -------
     list[Path]
-        The files written: the models' pages, the search page and `references.bib`
+        The files written: the models' pages, the search page, the simulations page and
+        `references.bib`
 
     Raises
     ------
@@ -347,16 +499,20 @@ def write_pages(registry_json: Path, docs: Path, base_url: str) -> list[Path]:
     registry = from_json(json.loads(registry_json.read_text(encoding="utf-8")))
     folder = docs / "models"
     folder.mkdir(parents=True, exist_ok=True)
+    status = read_status(simulations)
     written = []
     for model_id in sorted(registry.models):
         page = folder / f"{model_id}.md"
-        page.write_text(model_page(registry.models[model_id], registry), encoding="utf-8")
+        text = model_page(registry.models[model_id], registry, status)
+        page.write_text(text, encoding="utf-8")
         written.append(page)
     search = docs / "search.md"
     search.write_text(search_page(registry, base_url), encoding="utf-8")
+    overview = docs / "simulations.md"
+    overview.write_text(simulations_page(registry, status), encoding="utf-8")
     bib = docs / "references.bib"
     bib.write_text(bibtex(registry), encoding="utf-8")
-    return [*written, search, bib]
+    return [*written, search, overview, bib]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -365,7 +521,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     Parameters
     ----------
     argv : Sequence[str], optional
-        `REGISTRY_JSON DOCS_DIR`, by default `sys.argv[1:]`
+        `REGISTRY_JSON DOCS_DIR [SIMULATIONS_DIR]`, by default `sys.argv[1:]`
 
     Returns
     -------
@@ -373,11 +529,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         The exit code: 0, or 2 for a usage error
     """
     arguments = list(sys.argv[1:] if argv is None else argv)
-    if len(arguments) != 2:
-        print(f"usage: {Path(__file__).name} REGISTRY_JSON DOCS_DIR", file=sys.stderr)
+    if len(arguments) not in (2, 3):
+        name = Path(__file__).name
+        print(f"usage: {name} REGISTRY_JSON DOCS_DIR [SIMULATIONS_DIR]", file=sys.stderr)
         return 2
-    written = write_pages(Path(arguments[0]), Path(arguments[1]), os.environ.get("BASE_URL", ""))
-    print(f"wrote {len(written) - 2} model pages, the search page and references.bib")
+    simulations = Path(arguments[2]) if len(arguments) == 3 else None
+    base_url = os.environ.get("BASE_URL", "")
+    written = write_pages(Path(arguments[0]), Path(arguments[1]), base_url, simulations)
+    print(
+        f"wrote {len(written) - 3} model pages, the search and simulations pages and references.bib"
+    )
     return 0
 
 
