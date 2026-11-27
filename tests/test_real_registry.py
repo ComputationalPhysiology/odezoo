@@ -34,7 +34,7 @@ def test_upstream_pmr_serves_the_same_bytes():
 
 def test_seed_models():
     models = load_checkout(REPO).models
-    assert len(models) == 49
+    assert len(models) == 50
     for family in ("tentusscher_2004", "tentusscher_2006", "sakmann_2000"):
         assert sorted(m.id for m in models.values() if m.family == family) == [
             f"{family}_endo",

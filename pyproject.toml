@@ -16,7 +16,17 @@ dependencies = ["rich>=13"]
 # griffe: the API reference generator's tests read the source with it.
 test = ["pytest", "pytest-cov", "pytest-socket", "hatchling", "griffe>=2"]
 # What building the site needs; Node 22 comes from the system (see docs.yml).
-docs = ["griffe>=2", "mystmd>=1.13,<2"]
+# gotranx, scipy, matplotlib, numpy and crossbridge (its calcium transients): for
+# tools/simulate_models.py, which simulates every model for the site.
+docs = [
+  "griffe>=2",
+  "mystmd>=1.13,<2",
+  "gotranx>=2.9",
+  "scipy",
+  "matplotlib",
+  "numpy",
+  "crossbridge>=0.6",
+]
 dev = ["pre-commit", "odezoo[test,docs]"]
 
 [project.urls]
