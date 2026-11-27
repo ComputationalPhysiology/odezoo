@@ -223,7 +223,7 @@ def _describe(error: BaseException) -> str:
     return text[:500]
 
 
-def _max_step(parameters: dict[str, float], end: float) -> float:
+def _max_step(parameters: dict[str, float], end: float, seconds_per_unit: float) -> float:
     """Choose the longest step the solver may take, so that it cannot step over a stimulus
 
     Parameters
@@ -232,17 +232,22 @@ def _max_step(parameters: dict[str, float], end: float) -> float:
         The model's parameters, by name
     end : float
         The end of the simulation, in the model's time unit
+    seconds_per_unit : float
+        The seconds in one of the model's time units
 
     Returns
     -------
     float
-        Half the stimulus duration when a parameter names one, otherwise `end / 2000`
+        At most 0.25 ms, and at most half the stimulus duration when a parameter names one
+        (`stim_duration`, `IstimPulseDuration`, or plain `duration` as in O'Hara-Rudy 2011)
     """
+    bound = min(0.25e-3 / seconds_per_unit, end / 2000)
     for name, value in parameters.items():
         lower = name.lower()
-        if "stim" in lower and ("duration" in lower or "width" in lower) and value > 0:
-            return min(value / 2, end / 2000)
-    return end / 2000
+        stimulus = "stim" in lower and ("duration" in lower or "width" in lower)
+        if (stimulus or lower == "duration") and value > 0:
+            bound = min(bound, value / 2)
+    return bound
 
 
 def simulate(
@@ -321,7 +326,7 @@ def simulate(
                 t_eval=t_eval,
                 rtol=1e-6,
                 atol=1e-8,
-                max_step=_max_step(parameters, end),
+                max_step=_max_step(parameters, end, seconds_per_unit),
             )
             if not solution.success:
                 raise SimulationError("simulate", f"the solver stopped: {solution.message}")
@@ -351,7 +356,7 @@ def simulate(
 #: What to plot per category: panel title, and the names to look for, first match wins
 _PANELS: dict[str, list[tuple[str, list[str]]]] = {
     "electrophysiology": [
-        ("Membrane voltage", ["V", "Vm", "V_m"]),
+        ("Membrane voltage", ["V", "Vm", "V_m", "E"]),
         ("Cytosolic Ca", ["Ca_i", "Cai", "Ca_i_free", "Ca_myo"]),
     ],
     "myofilament_mechanics": [("Ca (input)", ["Ca"]), ("Active tension", ["Ta"])],
@@ -372,7 +377,8 @@ def panels(trace: Trace, category: str) -> list[tuple[str, list[str]]]:
     -------
     list[tuple[str, list[str]]]
         Per panel, its title and the names it plots. A panel whose variables the model lacks is
-        left out; when none is left, one panel of the first four states. The panel `PV_LOOP`
+        left out; one panel of the first four states is added when the category's main variable
+        (voltage, tension) is missing or no panel is left. The panel `PV_LOOP`
         plots its second name against its first.
     """
     lower = {name.lower(): name for name in trace.values}
@@ -383,11 +389,17 @@ def panels(trace: Trace, category: str) -> list[tuple[str, list[str]]]:
         pressures = sorted(n for n in trace.values if n.startswith("p_"))
         if pressures:
             chosen.append(("Pressures", pressures))
-    for title, candidates in _PANELS.get(category, []):
+    expected = _PANELS.get(category, [])
+    for title, candidates in expected:
         found = next((lower[c.lower()] for c in candidates if c.lower() in lower), None)
         if found is not None:
             chosen.append((title, [found]))
-    return chosen or [("States", list(trace.values)[:4])]
+    # Without its main variable (a voltage not called V, a tension not called Ta), a model's
+    # figure would hide what matters most, so the first states are shown as well.
+    main_missing = bool(expected) and (not chosen or chosen[0][0] != expected[0][0])
+    if not chosen or main_missing:
+        chosen.append(("States", list(trace.values)[:4]))
+    return chosen
 
 
 def plot(trace: Trace, chosen: list[tuple[str, list[str]]], title: str, path: Path) -> None:
@@ -574,6 +586,21 @@ def _child(worker: Callable[[Job, Path], Outcome], job: Job, out_dir: Path, resu
     results.put((job.id, asdict(worker(job, out_dir))))
 
 
+def _stop(process: Any) -> None:
+    """Stop a process: terminate it, and kill it if it does not exit
+
+    Parameters
+    ----------
+    process : multiprocessing.Process
+        The process
+    """
+    process.terminate()
+    process.join(5)
+    if process.is_alive():
+        process.kill()
+        process.join()
+
+
 def run_all(
     jobs: list[Job],
     out_dir: Path,
@@ -581,6 +608,8 @@ def run_all(
     timeout: float,
     workers: int,
     worker: Callable[[Job, Path], Outcome] = run_one,
+    deadline: float | None = None,
+    status: Path | None = None,
 ) -> dict[str, Outcome]:
     """Run every job, each in its own process, at most `workers` at a time
 
@@ -596,6 +625,12 @@ def run_all(
         How many processes run at once
     worker : Callable[[Job, Path], Outcome], optional
         What runs a job in its process, by default `run_one`
+    deadline : float | None, optional
+        Seconds the whole run may take, by default `None`, no limit. At the deadline the running
+        jobs are stopped, and they and the jobs not yet started are recorded as `timeout`.
+    status : Path | None, optional
+        A `status.json` to rewrite after every outcome, so that what has finished survives the
+        run being stopped from outside, by default `None`
 
     Returns
     -------
@@ -611,6 +646,7 @@ def run_all(
     pending = list(jobs)
     running: dict[str, tuple[Any, Job, float]] = {}
     outcomes: dict[str, Outcome] = {}
+    begun = time.monotonic()
 
     def drain(wait: float) -> None:
         try:
@@ -621,11 +657,21 @@ def run_all(
         except queue.Empty:
             pass
 
-    def failed(job: Job, status: Any, error: str, started: float) -> Outcome:
+    def failed(job: Job, state: Any, error: str, started: float) -> Outcome:
         seconds = round(time.monotonic() - started, 2)
-        return Outcome(job.id, job.version, status, None, error, seconds, None)
+        return Outcome(job.id, job.version, state, None, error, seconds, None)
 
     while pending or running:
+        if deadline is not None and time.monotonic() - begun > deadline:
+            error = f"the run stopped at its deadline of {deadline:g} s"
+            for model_id, (process, job, started) in running.items():
+                _stop(process)
+                outcomes.setdefault(model_id, failed(job, "timeout", error, started))
+            for job in pending:
+                outcomes[job.id] = failed(job, "timeout", error, time.monotonic())
+            running.clear()
+            pending.clear()
+            break
         while pending and len(running) < max(workers, 1):
             job = pending.pop(0)
             process = context.Process(target=_child, args=(worker, job, out_dir, results))
@@ -635,22 +681,23 @@ def run_all(
         for model_id, (process, job, started) in list(running.items()):
             if model_id in outcomes:
                 process.join(5)
+                if process.is_alive():
+                    _stop(process)
             elif not process.is_alive():
                 drain(0.5)
                 if model_id not in outcomes:
                     error = f"the process exited with code {process.exitcode}"
                     outcomes[model_id] = failed(job, "failed", error, started)
             elif time.monotonic() - started > timeout:
-                process.terminate()
-                process.join(5)
-                if process.is_alive():
-                    process.kill()
-                    process.join()
-                error = f"stopped after {timeout:g} s"
-                outcomes[model_id] = failed(job, "timeout", error, started)
+                _stop(process)
+                outcomes[model_id] = failed(job, "timeout", f"stopped after {timeout:g} s", started)
             else:
                 continue
             del running[model_id]
+            if status is not None:
+                write_status(outcomes, status)
+    if status is not None:
+        write_status(outcomes, status)
     return outcomes
 
 
@@ -665,7 +712,10 @@ def write_status(outcomes: dict[str, Outcome], path: Path) -> None:
         The file to write
     """
     data = {"models": {k: asdict(outcomes[k]) for k in sorted(outcomes)}}
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # Written whole, then renamed over the old one, so a reader never sees half a file.
+    partial = path.with_name(path.name + ".partial")
+    partial.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    os.replace(partial, path)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -687,6 +737,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("out_dir", type=Path, help="where status.json and the figures go")
     parser.add_argument("--timeout", type=float, default=300.0, help="seconds per model")
     parser.add_argument("--workers", type=int, default=os.cpu_count() or 1)
+    parser.add_argument(
+        "--deadline", type=float, default=1500.0, help="seconds for the whole run (25 minutes)"
+    )
     parser.add_argument("--only", nargs="+", metavar="ID", help="simulate only these models")
     try:
         args = parser.parse_args(sys.argv[1:] if argv is None else list(argv))
@@ -699,8 +752,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     todo = [j for j in jobs(registry, args.models_dir) if not args.only or j.id in args.only]
     args.out_dir.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
-    outcomes = run_all(todo, args.out_dir, timeout=args.timeout, workers=args.workers)
-    write_status(outcomes, args.out_dir / "status.json")
+    outcomes = run_all(
+        todo,
+        args.out_dir,
+        timeout=args.timeout,
+        workers=args.workers,
+        deadline=args.deadline,
+        status=args.out_dir / "status.json",
+    )
     for model_id in sorted(outcomes):
         o = outcomes[model_id]
         where = f" at {o.stage}" if o.stage else ""

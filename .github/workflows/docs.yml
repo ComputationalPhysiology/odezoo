@@ -61,6 +61,8 @@ jobs:
       # Every model's default version, simulated for its page. A model that fails is reported
       # on the site, not here: the tool exits 0 whatever the models do, and should the tool
       # itself break, the pages say that the simulation did not run, so neither fails the job.
+      # The tool stops itself at its 25-minute deadline (`--deadline`), before this step's limit,
+      # and rewrites status.json after every model, so finished models are never lost.
       - name: Simulate the models
         continue-on-error: true
         timeout-minutes: 30

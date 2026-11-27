@@ -8,6 +8,7 @@ words:
   - crossbridge
   - capfd
   - codegen
+  - dokos
   - lewalle
   - marzban
   - regazzoni

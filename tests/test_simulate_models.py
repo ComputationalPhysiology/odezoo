@@ -73,6 +73,13 @@ def test_stimulated_model_fires():
     assert max(trace.values["v"]) > 10
 
 
+def test_unnamed_short_pulse_fires():
+    # O'Hara-Rudy 2011 names its 0.5 ms stimulus `amp` and `duration`.
+    ode, _ = sim.load(DATA / "unnamed_pulse.ode")
+    trace = sim.simulate(ode, 1e-3, duration=3.0)
+    assert max(trace.values["v"]) > 5
+
+
 def test_nan_is_a_failure():
     ode, _ = sim.load(DATA / "divides_by_zero.ode")
     with pytest.raises(sim.SimulationError) as info:
@@ -106,9 +113,25 @@ def test_panels_pick_named_variables():
     ]
 
 
+def test_panels_add_the_states_when_the_main_variable_is_missing():
+    # A voltage under a name not looked for: the page must not show the calcium alone.
+    t = np.linspace(0, 1, 5)
+    trace = sim.Trace(t=t, values={"U": t, "Ca_i": t})
+    assert sim.panels(trace, "electrophysiology") == [
+        ("Cytosolic Ca", ["Ca_i"]),
+        ("States", ["U", "Ca_i"]),
+    ]
+
+
+def test_panels_find_dokos_voltage():
+    t = np.linspace(0, 1, 5)
+    trace = sim.Trace(t=t, values={"Cai": t, "E": t})
+    assert sim.panels(trace, "electrophysiology")[0] == ("Membrane voltage", ["E"])
+
+
 def test_panels_fall_back_to_states():
     t = np.linspace(0, 1, 5)
-    trace = sim.Trace(t=t, values={name: t for name in "abcde"})
+    trace = sim.Trace(t=t, values={name: t for name in ("a", "b", "c", "d", "f")})
     assert sim.panels(trace, "electrophysiology") == [("States", ["a", "b", "c", "d"])]
 
 
@@ -189,3 +212,21 @@ def test_run_one_keeps_gotranx_quiet(tmp_path, capfd):
     sim.run_all([job(tmp_path, "decay")], tmp_path, timeout=60, workers=1)
     out, err = capfd.readouterr()
     assert "Load ode" not in out + err
+
+
+def test_run_all_stops_at_its_deadline(tmp_path):
+    jobs = [job(tmp_path, "decay"), job(tmp_path, "broken"), job(tmp_path, "stimulated")]
+    started = time.monotonic()
+    outcomes = sim.run_all(
+        jobs, tmp_path, timeout=60, workers=1, worker=helpers.sleep_forever, deadline=2
+    )
+    assert {o.status for o in outcomes.values()} == {"timeout"}
+    assert sorted(outcomes) == ["broken", "decay", "stimulated"]
+    assert time.monotonic() - started < 15
+
+
+def test_run_all_writes_the_status_as_it_goes(tmp_path):
+    status = tmp_path / "status.json"
+    sim.run_all([job(tmp_path, "decay")], tmp_path, timeout=60, workers=1, status=status)
+    data = json.loads(status.read_text(encoding="utf-8"))
+    assert data["models"]["decay"]["status"] == "ok"
