@@ -1,0 +1,4 @@
+parameters(duration=0.5, start=100.0, amp=50.0)
+states(v=0.0)
+pulse = Conditional(And(Ge(t, start), Lt(t, start + duration)), amp, 0)
+dv_dt = pulse - v

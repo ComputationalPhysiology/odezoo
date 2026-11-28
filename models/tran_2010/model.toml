@@ -1,0 +1,29 @@
+id = "tran_2010"
+name = "Tran 2010, metabolite-sensitive cardiac crossbridge cycling"
+description = "Rice 2008 with a reversible crossbridge cycle that depends on MgATP, MgADP, Pi and H+, parameterised for guinea pig. Inputs `Ca` (µM), `SL` (µm) and `dSL` (µm/s) are parameters in the `inputs` component; remove that component to couple the model to an electrophysiology or tissue model. Outputs `Ta`, `Ka`, `bound_ca` and `Tp`."
+categories = ["myofilament_mechanics"]
+keywords = ["crossbridge", "metabolites", "active tension"]
+species = "guinea pig"
+reviewed = true
+
+[paper]
+title = "A metabolite-sensitive, thermodynamically constrained model of cardiac cross-bridge cycling: implications for force development during ischemia"
+authors = ["Tran K", "Smith NP", "Loiselle DS", "Crampin EJ"]
+journal = "Biophys J"
+year = 2010
+doi = "10.1016/j.bpj.2009.10.011"
+pubmed = 20338848
+
+[[versions]]
+id = "github-80cb6c2"
+format = "ode"
+sha256 = "5434965f2a74d43ebd4ae968a8903614fd8ea8eedd5e64b776d13f633d15f233"
+license = "MIT"
+file = "github-80cb6c2.ode"
+added = 2026-11-27
+
+[versions.source]
+type = "github"
+repo = "ComputationalPhysiology/crossbridge"
+commit = "80cb6c2b24606d57024890975da4299554d045cf"
+path = "src/crossbridge/tran2010.ode"

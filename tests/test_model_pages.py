@@ -152,5 +152,78 @@ def test_write_pages_writes_one_page_per_model_and_the_search_page(tmp_path):
     assert ":::{anywidget} ./_static/search.mjs" in search
     body = search.split(":::{anywidget} ./_static/search.mjs\n")[1].split("\n:::")[0]
     assert [m["id"] for m in json.loads(body)["models"]] == sorted(reg.models)
-    assert len(written) == len(reg.models) + 2
+    assert len(written) == len(reg.models) + 3
+    assert (docs / "simulations.md").exists()
     assert "@article{" in (docs / "references.bib").read_text(encoding="utf-8")
+
+
+def outcome(model_id, status="ok", stage=None, error=None, figure=None):
+    return {"id": model_id, "version": "pmr-cb090c9", "status": status, "stage": stage,
+            "error": error, "seconds": 2.5, "figure": figure}  # fmt: skip
+
+
+def test_read_status(tmp_path):
+    assert model_pages.read_status(None) is None
+    assert model_pages.read_status(tmp_path) is None
+    status = {"models": {"beeler_reuter_1977": outcome("beeler_reuter_1977")}}
+    (tmp_path / "status.json").write_text(json.dumps(status), encoding="utf-8")
+    assert model_pages.read_status(tmp_path) == status["models"]
+
+
+def test_section_ok_has_the_figure():
+    status = {br.id: outcome(br.id, figure=f"{br.id}.png")}
+    text = "\n".join(model_pages.simulation_section(br, status))
+    assert text.startswith("## Simulation")
+    assert f"![Simulation of {br.id}](../simulations/{br.id}.png)" in text
+    assert "`pmr-cb090c9`" in text
+
+
+def test_section_failure_is_a_warning_with_the_error():
+    status = {br.id: outcome(br.id, "failed", "codegen", "NameError: `x` is not defined")}
+    text = "\n".join(model_pages.simulation_section(br, status))
+    assert ":::{warning}" in text and "codegen" in text
+    assert "NameError" in text and "![" not in text
+    # The error sits in a code span that its own backticks cannot end.
+    assert "`` NameError: `x` is not defined ``" in text
+
+
+def test_section_timeout():
+    status = {br.id: outcome(br.id, "timeout", None, "stopped after 300 s")}
+    text = "\n".join(model_pages.simulation_section(br, status))
+    assert ":::{warning}" in text and "time limit" in text
+
+
+def test_section_without_status():
+    for status in (None, {}):
+        text = "\n".join(model_pages.simulation_section(br, status))
+        assert ":::{note}" in text and "did not run" in text
+
+
+def test_section_mentions_the_calcium_input_for_contraction_models():
+    land = make_model(id="land_2017", categories=["myofilament_mechanics"])
+    status = {land.id: outcome(land.id, figure="land_2017.png")}
+    assert "transient" in "\n".join(model_pages.simulation_section(land, status))
+
+
+def test_model_page_has_the_section():
+    assert "## Simulation" in model_pages.model_page(br, registry(br), None)
+
+
+def test_simulations_page_lists_failures_first():
+    reg = registry(br, endo, epi)
+    status = {
+        br.id: outcome(br.id, figure="x.png"),
+        endo.id: outcome(endo.id, "timeout", None, "stopped"),
+        epi.id: outcome(epi.id, "failed", "load", "bad"),
+    }
+    text = model_pages.simulations_page(reg, status)
+    assert text.startswith("---\ntitle: Simulations\n---")
+    assert "1 ok, 1 failed, 1 timed out" in text
+    rows = [line for line in text.splitlines() if line.startswith("| [")]
+    assert [r.split("]")[0][3:] for r in rows] == [epi.id, endo.id, br.id]
+    assert f"[{br.id}](./models/{br.id}.md)" in text
+
+
+def test_simulations_page_without_status():
+    text = model_pages.simulations_page(registry(br), None)
+    assert "did not run" in text
