@@ -96,6 +96,15 @@ hatchling build hook in `hatch_build.py`. After changing `models/`, use `--regis
 - `odezoo registry check`, run in the checkout, must pass before committing a change to
   `models/`.
 
+## Agent skill
+
+- `plugins/odezoo/skills/odezoo-models/` is an agent skill (Agent Skills format, packaged as a
+  Claude Code plugin through `.claude-plugin/marketplace.json`). It names odezoo's API, command
+  line options, model ids and version ids; update it when you add, rename or remove one, as
+  `tests/test_agent_skill.py` fails on stale names. The plugin's version in
+  `plugins/odezoo/.claude-plugin/plugin.json` must equal the package version (the test checks);
+  change both when releasing.
+
 ## Git
 
 - Never push, and never open a pull request, without the maintainer's go-ahead. Before a push,

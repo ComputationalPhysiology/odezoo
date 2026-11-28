@@ -25,6 +25,22 @@ python3 -m pip install git+https://github.com/ComputationalPhysiology/odezoo
 The documentation, with a page for every model and a search, is at
 <https://computationalphysiology.github.io/odezoo>.
 
+### AI agent skill
+
+odezoo ships an [agent skill](https://agentskills.io) that helps you find the right published
+model: it checks your environment, asks what the model is for (species, cell type, downstream use),
+proposes candidates and how to deliver the file, fetches a pinned version and checks that it loads
+in gotranx.
+
+- **Claude Code:** `/plugin marketplace add ComputationalPhysiology/odezoo` then
+  `/plugin install odezoo@odezoo`
+- **Other agents** (Codex, Gemini CLI, GitHub Copilot, Cursor, OpenCode, ...):
+  `npx skills add ComputationalPhysiology/odezoo --skill odezoo-models`
+- **Manually:** copy [`plugins/odezoo/skills/odezoo-models`](https://github.com/ComputationalPhysiology/odezoo/tree/main/plugins/odezoo/skills/odezoo-models)
+  into your agent's skills directory (e.g. `~/.claude/skills/`).
+
+See [Using odezoo with an AI agent](#using-odezoo-with-an-ai-agent) below.
+
 ## Quick start
 
 ```
@@ -87,6 +103,34 @@ or a new version of one. GitHub and PMR URLs are pinned to a commit (for PMR, us
 categories, then run `odezoo registry check`. The documentation has the full guide to adding
 models, and [CONTRIBUTING.md](CONTRIBUTING.md) the steps for a pull request, including building
 the documentation.
+
+## Using odezoo with an AI agent
+
+The `odezoo-models` skill (installed as above) turns a coding agent into a guide for choosing and
+fetching published models. It
+
+- checks that odezoo is installed, whether the installed registry has the model you need, and
+  whether the machine that will run the simulation has network access;
+- asks you, one question at a time, about your goal, species and cell type, the package that will
+  use the model, and whether the file will be committed or shared;
+- proposes two or three candidate models with their trade-offs (number of states, review status,
+  format, licence, cell types as separate models or as a parameter) and ways to deliver the file
+  (in the project folder, or fetched at run time with a pinned version), and recommends one;
+- fetches the file, converts it with gotranx where needed, and reports what to check in it (time
+  unit, membrane potential, the model's own stimulus, the cell-type parameter);
+- knows the common pitfalls (a pager waiting for a key press, unpinned versions changing after an
+  update, offline compute nodes, licences);
+- covers adding a model to the registry, for contributors;
+- never installs anything without asking.
+
+Describe what you want, for example
+
+> I need a human ventricular cell model with endo and epi variants for a tissue simulation in
+> fenicsx-beat
+
+and the agent loads the skill on its own; or invoke it explicitly (`/odezoo:odezoo-models` in
+Claude Code, `/odezoo-models` if you copied the folder). Update it with
+`/plugin marketplace update odezoo` or `npx skills update`.
 
 ## Licence
 
