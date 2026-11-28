@@ -1,0 +1,12 @@
+{
+  "name": "odezoo",
+  "owner": { "name": "Henrik Finsberg" },
+  "description": "Agent skills for odezoo, a curated registry of published cardiac cell, contraction and circulation models",
+  "plugins": [
+    {
+      "name": "odezoo",
+      "source": "./plugins/odezoo",
+      "description": "Find, compare, pin and fetch published ODE models from the odezoo registry, and add new ones"
+    }
+  ]
+}

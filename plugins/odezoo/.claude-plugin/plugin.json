@@ -1,0 +1,10 @@
+{
+  "name": "odezoo",
+  "version": "0.2.0",
+  "description": "Find, compare and fetch published cardiac cell, contraction and circulation models from the odezoo registry: it checks the environment, asks what the model is for, proposes candidates and how to deliver the file, and checks that it loads in gotranx",
+  "author": { "name": "Henrik Finsberg" },
+  "homepage": "https://computationalphysiology.github.io/odezoo",
+  "repository": "https://github.com/ComputationalPhysiology/odezoo",
+  "license": "MIT",
+  "keywords": ["ode", "cellml", "cardiac", "cell-model", "registry", "reproducibility"]
+}
